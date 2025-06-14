@@ -218,6 +218,56 @@ function analyzeGridTemplate(value: string): { type: 'equal-columns' | 'equal-ro
 
 // Dynamic pattern matching functions
 const PATTERN_MATCHERS = [
+  // New matcher for padding shorthand properties
+  {
+    test: (property: string, value: string) => {
+      const prop = property.toLowerCase().trim();
+      const val = value.trim();
+      // Test for 'padding' property with two values (e.g., "8px 16px")
+      return prop === 'padding' && val.split(/\s+/).length === 2;
+    },
+    convert: (property: string, value: string) => {
+      // A map to convert pixel values to Tailwind's spacing scale
+      const pixelToSpacing: Record<string, string> = {
+        '0px': '0', '0': '0',
+        '1px': 'px',
+        '2px': '0.5',
+        '4px': '1',
+        '6px': '1.5',
+        '8px': '2',
+        '10px': '2.5',
+        '12px': '3',
+        '14px': '3.5',
+        '16px': '4',
+        '20px': '5',
+        '24px': '6',
+        '32px': '8',
+      };
+      
+      const parts = value.trim().split(/\s+/);
+      const vertical = parts[0];
+      const horizontal = parts[1];
+
+      const pyClass = pixelToSpacing[vertical];
+      const pxClass = pixelToSpacing[horizontal];
+
+      // Check if both values were successfully mapped
+      if (pyClass !== undefined && pxClass !== undefined) {
+        // Handle the special case for 'p-px'
+        const py = pyClass === 'px' ? 'py-px' : `py-${pyClass}`;
+        const px = pxClass === 'px' ? 'px-px' : `px-${pxClass}`;
+        
+        // If they are the same, combine them (e.g., p-2)
+        if (pyClass === pxClass) {
+          return pyClass === 'px' ? 'p-px' : `p-${pyClass}`;
+        }
+        
+        return `${py} ${px}`;
+      }
+      
+      return null; // Return null if the pattern doesn't match a known conversion
+    }
+  },
   // Basic spacing scale (e.g., "right: 0" → "right-0")
   {
     test: (property: string, value: string) => {

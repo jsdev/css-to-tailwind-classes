@@ -19,6 +19,43 @@ example2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 12px;
+}
+
+.card-content {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #666666;
+}
+
+.card-button {
+  display: inline-block;
+  background-color: #3b82f6;
+  color: #ffffff;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-decoration: none;
+  margin-top: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.card-button:hover {
+  background-color: #2563eb;
 }`;
 
 const HEADER_HEIGHT = 89;
