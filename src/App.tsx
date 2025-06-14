@@ -12,6 +12,43 @@ const EXAMPLE_CSS = `video {
   accent-color: yellow;
 }
 
+/* Default browser accent color */
+button, input[type="checkbox"], input[type="radio"] {
+  accent-color: auto;
+}
+
+/* Custom accent colors */
+.accent-blue {
+  accent-color: blue;
+}
+
+.accent-green {
+  accent-color: #28a745;
+}
+
+.accent-pink {
+  accent-color: rgb(255, 20, 147);
+}
+
+/* Default caret color */
+input, textarea {
+  caret-color: auto;
+}
+
+/* Custom caret colors */
+.caret-red {
+  caret-color: red;
+}
+
+.caret-purple {
+  caret-color: #800080;
+}
+
+.caret-orange {
+  caret-color: orange;
+}
+
+
 example1 {
   background: #fff;
   display: grid;

@@ -5,7 +5,7 @@ import { transitionPatternMatcher } from './transition'
 import { textPatternMatcher } from './text'
 import { fontPatternMatcher } from './font'
 import { borderPatternMatcher } from './border'
-import { accentColorPatternMatcher } from './accent-color'
+import { formColorPatternMatcher } from './form-color'
 import { shadowPatternMatcher } from './shadow'
 import {
   ASPECT_RATIO_PROPERTIES,
@@ -100,7 +100,7 @@ const PATTERN_MATCHERS = [
   textPatternMatcher,
   fontPatternMatcher,
   borderPatternMatcher,
-  accentColorPatternMatcher,
+  formColorPatternMatcher,
   shadowPatternMatcher,
   // New matcher for padding shorthand properties
   {
