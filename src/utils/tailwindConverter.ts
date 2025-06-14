@@ -2,13 +2,18 @@ import { ConversionResult, CSSRule } from '../types';
 import tailwindMap from '../tailwindMap';
 import { backgroundPatternMatcher } from './background';
 import { transitionPatternMatcher } from './transition';
+import { textPatternMatcher } from './text';
+import { fontPatternMatcher } from './font'
 import {
   ASPECT_RATIO_PROPERTIES,
   ASPECT_RATIO_PATTERNS,
   FRACTION_SCALE,
   GRID_PROPERTIES,
   SPACING_PROPERTIES,
-  SPACING_SCALE
+  SPACING_SCALE,
+  GRID_PATTERNS,
+  GRID_ROWS_PATTERNS,
+
 } from './constants'
 
 // Helper function to parse aspect ratio values
@@ -61,36 +66,6 @@ function aspectRatioToFraction(width: number, height: number): string {
   return `${simplifiedW}/${simplifiedH}`;
 }
 
-// Grid template patterns
-const GRID_PATTERNS = {
-  // Common grid patterns
-  'repeat(1, minmax(0, 1fr))': 'grid-cols-1',
-  'repeat(2, minmax(0, 1fr))': 'grid-cols-2',
-  'repeat(3, minmax(0, 1fr))': 'grid-cols-3',
-  'repeat(4, minmax(0, 1fr))': 'grid-cols-4',
-  'repeat(5, minmax(0, 1fr))': 'grid-cols-5',
-  'repeat(6, minmax(0, 1fr))': 'grid-cols-6',
-  'repeat(7, minmax(0, 1fr))': 'grid-cols-7',
-  'repeat(8, minmax(0, 1fr))': 'grid-cols-8',
-  'repeat(9, minmax(0, 1fr))': 'grid-cols-9',
-  'repeat(10, minmax(0, 1fr))': 'grid-cols-10',
-  'repeat(11, minmax(0, 1fr))': 'grid-cols-11',
-  'repeat(12, minmax(0, 1fr))': 'grid-cols-12',
-  'none': 'grid-cols-none',
-  'subgrid': 'grid-cols-subgrid'
-};
-
-const GRID_ROWS_PATTERNS = {
-  'repeat(1, minmax(0, 1fr))': 'grid-rows-1',
-  'repeat(2, minmax(0, 1fr))': 'grid-rows-2',
-  'repeat(3, minmax(0, 1fr))': 'grid-rows-3',
-  'repeat(4, minmax(0, 1fr))': 'grid-rows-4',
-  'repeat(5, minmax(0, 1fr))': 'grid-rows-5',
-  'repeat(6, minmax(0, 1fr))': 'grid-rows-6',
-  'none': 'grid-rows-none',
-  'subgrid': 'grid-rows-subgrid'
-};
-
 // Helper function to analyze grid template values
 function analyzeGridTemplate(value: string): { type: 'equal-columns' | 'equal-rows' | 'mixed' | 'unknown', count?: number, size?: string } {
   const normalized = value.toLowerCase().trim();
@@ -118,7 +93,9 @@ function analyzeGridTemplate(value: string): { type: 'equal-columns' | 'equal-ro
 // Dynamic pattern matching functions
 const PATTERN_MATCHERS = [
   backgroundPatternMatcher,
-  transitionPatternMatcher, 
+  transitionPatternMatcher,
+  textPatternMatcher,
+  fontPatternMatcher,
   // New matcher for padding shorthand properties
   {
     test: (property: string, value: string) => {
