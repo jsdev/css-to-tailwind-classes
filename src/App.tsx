@@ -22,7 +22,7 @@ example2 {
 }`;
 
 const HEADER_HEIGHT = 89;
-const GITHUB_URL = 'https://github.com'; // Replace with your actual repo URL
+const GITHUB_URL = 'https://github.com/jsdev/css-to-tailwind-classes';
 
 // Types
 interface ActionButtonProps {
