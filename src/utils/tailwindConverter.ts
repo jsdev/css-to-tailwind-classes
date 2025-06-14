@@ -642,7 +642,375 @@ const PATTERN_MATCHERS = [
       const cleanValue = value.trim().replace(/\s+/g, '');
       return `aspect-[${cleanValue}]`;
     }
+  },
+  // Add these pattern matchers to your PATTERN_MATCHERS array
+
+// Color patterns - hex colors
+{
+  test: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.toLowerCase().trim();
+    const colorProperties = [
+      'color', 'background-color', 'border-color', 'border-top-color', 
+      'border-right-color', 'border-bottom-color', 'border-left-color',
+      'text-decoration-color', 'outline-color', 'fill', 'stroke'
+    ];
+    return colorProperties.includes(prop) && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(val);
+  },
+  convert: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.toLowerCase().trim();
+    
+    const propertyMap: Record<string, string> = {
+      'color': 'text',
+      'background-color': 'bg',
+      'border-color': 'border',
+      'border-top-color': 'border-t',
+      'border-right-color': 'border-r',
+      'border-bottom-color': 'border-b',
+      'border-left-color': 'border-l',
+      'text-decoration-color': 'decoration',
+      'outline-color': 'outline',
+      'fill': 'fill',
+      'stroke': 'stroke'
+    };
+    
+    const prefix = propertyMap[prop];
+    if (!prefix) return null;
+    
+    return `${prefix}-[${val}]`;
   }
+},
+
+// RGB/RGBA colors
+{
+  test: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.toLowerCase().trim();
+    const colorProperties = [
+      'color', 'background-color', 'border-color', 'border-top-color', 
+      'border-right-color', 'border-bottom-color', 'border-left-color',
+      'text-decoration-color', 'outline-color', 'fill', 'stroke'
+    ];
+    return colorProperties.includes(prop) && 
+           (/^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*[\d.]+)?\s*\)$/i.test(val) ||
+            /^hsla?\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*(?:,\s*[\d.]+)?\s*\)$/i.test(val));
+  },
+  convert: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.trim();
+    
+    const propertyMap: Record<string, string> = {
+      'color': 'text',
+      'background-color': 'bg',
+      'border-color': 'border',
+      'border-top-color': 'border-t',
+      'border-right-color': 'border-r',
+      'border-bottom-color': 'border-b',
+      'border-left-color': 'border-l',
+      'text-decoration-color': 'decoration',
+      'outline-color': 'outline',
+      'fill': 'fill',
+      'stroke': 'stroke'
+    };
+    
+    const prefix = propertyMap[prop];
+    if (!prefix) return null;
+    
+    // Clean up spaces in the value for arbitrary syntax
+    const cleanVal = val.replace(/\s+/g, '');
+    return `${prefix}-[${cleanVal}]`;
+  }
+},
+
+// Border radius - pixel values
+{
+  test: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.toLowerCase().trim();
+    const borderRadiusProps = [
+      'border-radius', 'border-top-left-radius', 'border-top-right-radius',
+      'border-bottom-left-radius', 'border-bottom-right-radius'
+    ];
+    return borderRadiusProps.includes(prop) && /^\d+px$/.test(val);
+  },
+  convert: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.toLowerCase().trim();
+    
+    const propertyMap: Record<string, string> = {
+      'border-radius': 'rounded',
+      'border-top-left-radius': 'rounded-tl',
+      'border-top-right-radius': 'rounded-tr',
+      'border-bottom-left-radius': 'rounded-bl',
+      'border-bottom-right-radius': 'rounded-br'
+    };
+    
+    const prefix = propertyMap[prop];
+    if (!prefix) return null;
+    
+    return `${prefix}-[${val}]`;
+  }
+},
+
+// Border radius - common values
+{
+  test: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.toLowerCase().trim();
+    const borderRadiusProps = [
+      'border-radius', 'border-top-left-radius', 'border-top-right-radius',
+      'border-bottom-left-radius', 'border-bottom-right-radius'
+    ];
+    const commonValues: Record<string, string> = {
+      '0': '0',
+      '2px': 'sm',
+      '4px': '',
+      '6px': 'md',
+      '8px': 'lg',
+      '12px': 'xl',
+      '16px': '2xl',
+      '24px': '3xl',
+      '50%': 'full'
+    };
+    return borderRadiusProps.includes(prop) && commonValues[val];
+  },
+  convert: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.toLowerCase().trim();
+    
+    const propertyMap: Record<string, string> = {
+      'border-radius': 'rounded',
+      'border-top-left-radius': 'rounded-tl',
+      'border-top-right-radius': 'rounded-tr',
+      'border-bottom-left-radius': 'rounded-bl',
+      'border-bottom-right-radius': 'rounded-br'
+    };
+    
+    const commonValues: Record<string, string> = {
+      '0': '0',
+      '2px': 'sm',
+      '4px': '',
+      '6px': 'md',
+      '8px': 'lg',
+      '12px': 'xl',
+      '16px': '2xl',
+      '24px': '3xl',
+      '50%': 'full'
+    };
+    
+    const prefix = propertyMap[prop];
+    const suffix = commonValues[val];
+    if (!prefix || suffix === undefined) return null;
+    
+    return suffix ? `${prefix}-${suffix}` : prefix;
+  }
+},
+
+// Box shadow - common patterns
+{
+  test: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    return prop === 'box-shadow' || prop === 'filter';
+  },
+  convert: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.toLowerCase().trim();
+    
+    if (prop === 'box-shadow') {
+      // Common shadow patterns
+      const shadowPatterns: Record<string, string> = {
+        'none': 'shadow-none',
+        '0 1px 2px 0 rgba(0, 0, 0, 0.05)': 'shadow-sm',
+        '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)': 'shadow',
+        '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)': 'shadow-md',
+        '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)': 'shadow-lg',
+        '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)': 'shadow-xl',
+        '0 25px 50px -12px rgba(0, 0, 0, 0.25)': 'shadow-2xl'
+      };
+      
+      // Check for exact matches first
+      if (shadowPatterns[val]) {
+        return shadowPatterns[val];
+      }
+      
+      // For custom shadows, use arbitrary value
+      const cleanVal = value.trim().replace(/\s+/g, '_');
+      return `shadow-[${cleanVal}]`;
+    }
+    
+    return null;
+  }
+},
+
+// Spacing - pixel values that map to Tailwind scale
+{
+  test: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.toLowerCase().trim();
+    
+    // Pixel to Tailwind spacing map
+    const pixelToSpacing: Record<string, string> = {
+      '0px': '0',
+      '1px': 'px',
+      '2px': '0.5',
+      '4px': '1',
+      '6px': '1.5',
+      '8px': '2',
+      '10px': '2.5',
+      '12px': '3',
+      '14px': '3.5',
+      '16px': '4',
+      '20px': '5',
+      '24px': '6',
+      '28px': '7',
+      '32px': '8',
+      '36px': '9',
+      '40px': '10',
+      '44px': '11',
+      '48px': '12',
+      '56px': '14',
+      '64px': '16',
+      '80px': '20',
+      '96px': '24',
+      '112px': '28',
+      '128px': '32',
+      '144px': '36',
+      '160px': '40',
+      '176px': '44',
+      '192px': '48',
+      '208px': '52',
+      '224px': '56',
+      '240px': '60',
+      '256px': '64',
+      '288px': '72',
+      '320px': '80',
+      '384px': '96'
+    };
+    
+    return SPACING_PROPERTIES.includes(prop) && pixelToSpacing[val];
+  },
+  convert: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.toLowerCase().trim();
+    
+    const pixelToSpacing: Record<string, string> = {
+      '0px': '0',
+      '1px': 'px',
+      '2px': '0.5',
+      '4px': '1',
+      '6px': '1.5',
+      '8px': '2',
+      '10px': '2.5',
+      '12px': '3',
+      '14px': '3.5',
+      '16px': '4',
+      '20px': '5',
+      '24px': '6',
+      '28px': '7',
+      '32px': '8',
+      '36px': '9',
+      '40px': '10',
+      '44px': '11',
+      '48px': '12',
+      '56px': '14',
+      '64px': '16',
+      '80px': '20',
+      '96px': '24',
+      '112px': '28',
+      '128px': '32',
+      '144px': '36',
+      '160px': '40',
+      '176px': '44',
+      '192px': '48',
+      '208px': '52',
+      '224px': '56',
+      '240px': '60',
+      '256px': '64',
+      '288px': '72',
+      '320px': '80',
+      '384px': '96'
+    };
+    
+    const spacingClass = pixelToSpacing[val];
+    
+    const propertyClassMap: Record<string, string> = {
+      'margin': 'm',
+      'margin-top': 'mt',
+      'margin-right': 'mr',
+      'margin-bottom': 'mb',
+      'margin-left': 'ml',
+      'padding': 'p',
+      'padding-top': 'pt',
+      'padding-right': 'pr',
+      'padding-bottom': 'pb',
+      'padding-left': 'pl',
+      'top': 'top',
+      'right': 'right',
+      'bottom': 'bottom',
+      'left': 'left',
+      'width': 'w',
+      'height': 'h',
+      'min-width': 'min-w',
+      'min-height': 'min-h',
+      'max-width': 'max-w',
+      'max-height': 'max-h',
+      'gap': 'gap',
+      'row-gap': 'gap-y',
+      'column-gap': 'gap-x'
+    };
+    
+    const classPrefix = propertyClassMap[prop];
+    if (!classPrefix || !spacingClass) return null;
+    
+    return spacingClass === 'px' ? `${classPrefix}-px` : `${classPrefix}-${spacingClass}`;
+  }
+},
+
+// Spacing - rem/em values
+{
+  test: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.toLowerCase().trim();
+    
+    return SPACING_PROPERTIES.includes(prop) && /^\d*\.?\d+(rem|em)$/.test(val);
+  },
+  convert: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.trim();
+    
+    const propertyClassMap: Record<string, string> = {
+      'margin': 'm',
+      'margin-top': 'mt',
+      'margin-right': 'mr',
+      'margin-bottom': 'mb',
+      'margin-left': 'ml',
+      'padding': 'p',
+      'padding-top': 'pt',
+      'padding-right': 'pr',
+      'padding-bottom': 'pb',
+      'padding-left': 'pl',
+      'top': 'top',
+      'right': 'right',
+      'bottom': 'bottom',
+      'left': 'left',
+      'width': 'w',
+      'height': 'h',
+      'min-width': 'min-w',
+      'min-height': 'min-h',
+      'max-width': 'max-w',
+      'max-height': 'max-h',
+      'gap': 'gap',
+      'row-gap': 'gap-y',
+      'column-gap': 'gap-x'
+    };
+    
+    const classPrefix = propertyClassMap[prop];
+    if (!classPrefix) return null;
+    
+    return `${classPrefix}-[${val}]`;
+  }
+}
 ];
 
 // Helper function to normalize CSS values
