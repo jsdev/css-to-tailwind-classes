@@ -7,7 +7,12 @@ import { convertCSSToTailwind } from './utils/tailwindConverter';
 import { useClipboard } from './hooks/useClipboard';
 
 // Constants
-const EXAMPLE_CSS = `example1 {
+const EXAMPLE_CSS = `video {
+  aspect-ratio: 16 / 9;
+}
+
+example1 {
+  background: #fff;
   display: grid;
   grid-template-columns: 200px 200px;
   justify-content: space-around;
@@ -56,7 +61,9 @@ example2 {
 
 .card-button:hover {
   background-color: #2563eb;
-}`;
+}
+
+`;
 
 const HEADER_HEIGHT = 89;
 const GITHUB_URL = 'https://github.com/jsdev/css-to-tailwind-classes';
