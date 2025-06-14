@@ -1,5 +1,6 @@
 import { ConversionResult, CSSRule } from '../types';
 import tailwindMap from '../tailwindMap';
+import { backgroundPatternMatcher } from './background';
 
 // Add this to your main converter file, for example, before your other matchers.
 
@@ -371,6 +372,7 @@ function analyzeGridTemplate(value: string): { type: 'equal-columns' | 'equal-ro
 
 // Dynamic pattern matching functions
 const PATTERN_MATCHERS = [
+  backgroundPatternMatcher,
   transitionPatternMatcher, 
   // New matcher for padding shorthand properties
   {
