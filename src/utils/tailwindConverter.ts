@@ -1,10 +1,11 @@
-import { ConversionResult, CSSRule } from '../types';
-import tailwindMap from '../tailwindMap';
-import { backgroundPatternMatcher } from './background';
-import { transitionPatternMatcher } from './transition';
-import { textPatternMatcher } from './text';
+import { ConversionResult, CSSRule } from '../types'
+import tailwindMap from '../tailwindMap'
+import { backgroundPatternMatcher } from './background'
+import { transitionPatternMatcher } from './transition'
+import { textPatternMatcher } from './text'
 import { fontPatternMatcher } from './font'
 import { borderPatternMatcher } from './border'
+import { accentColorPatternMatcher } from './accent-color'
 import {
   ASPECT_RATIO_PROPERTIES,
   ASPECT_RATIO_PATTERNS,
@@ -98,6 +99,7 @@ const PATTERN_MATCHERS = [
   textPatternMatcher,
   fontPatternMatcher,
   borderPatternMatcher,
+  accentColorPatternMatcher,
   // New matcher for padding shorthand properties
   {
     test: (property: string, value: string) => {

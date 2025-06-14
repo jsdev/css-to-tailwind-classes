@@ -9,6 +9,7 @@ import { useClipboard } from './hooks/useClipboard';
 // Constants
 const EXAMPLE_CSS = `video {
   aspect-ratio: 16 / 9;
+  accent-color: yellow;
 }
 
 example1 {
