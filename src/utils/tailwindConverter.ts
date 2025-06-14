@@ -6,6 +6,7 @@ import { textPatternMatcher } from './text'
 import { fontPatternMatcher } from './font'
 import { borderPatternMatcher } from './border'
 import { accentColorPatternMatcher } from './accent-color'
+import { shadowPatternMatcher } from './shadow'
 import {
   ASPECT_RATIO_PROPERTIES,
   ASPECT_RATIO_PATTERNS,
@@ -100,6 +101,7 @@ const PATTERN_MATCHERS = [
   fontPatternMatcher,
   borderPatternMatcher,
   accentColorPatternMatcher,
+  shadowPatternMatcher,
   // New matcher for padding shorthand properties
   {
     test: (property: string, value: string) => {
