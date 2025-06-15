@@ -7,6 +7,7 @@ import { fontPatternMatcher } from './font'
 import { borderPatternMatcher } from './border'
 import { formColorPatternMatcher } from './form-color'
 import { shadowPatternMatcher } from './shadow'
+import { sizePatternMatcher } from './size'
 import {
   ASPECT_RATIO_PROPERTIES,
   ASPECT_RATIO_PATTERNS,
@@ -16,7 +17,6 @@ import {
   SPACING_SCALE,
   GRID_PATTERNS,
   GRID_ROWS_PATTERNS,
-
 } from './constants'
 
 // Helper function to parse aspect ratio values
@@ -102,6 +102,7 @@ const PATTERN_MATCHERS = [
   borderPatternMatcher,
   formColorPatternMatcher,
   shadowPatternMatcher,
+  sizePatternMatcher,
   // New matcher for padding shorthand properties
   {
     test: (property: string, value: string) => {
@@ -1037,7 +1038,31 @@ export function convertCSSToTailwind(rules: CSSRule[]): ConversionResult[] {
     const tailwindClasses: string[] = [];
     const unconvertible: Array<{ property: string; value: string; reason: string }> = [];
 
-    rule.declarations.forEach(({ property, value }) => {
+    // ====================================================================
+    // START: New logic for size optimization
+    // ====================================================================
+
+    // 1. Separate size-related properties from the rest
+    const sizeDeclarations = rule.declarations.filter(({ property }) => 
+      sizePatternMatcher.test(property)
+    );
+    
+    const remainingDeclarations = rule.declarations.filter(({ property }) => 
+      !sizePatternMatcher.test(property)
+    );
+
+    // 2. If we found any size properties, process them together for optimization
+    if (sizeDeclarations.length > 0) {
+      const sizeClasses = sizePatternMatcher.convertMultiple(sizeDeclarations);
+      tailwindClasses.push(...sizeClasses);
+    }
+    
+    // ====================================================================
+    // END: New logic for size optimization
+    // ====================================================================
+
+    // 3. Process the rest of the declarations individually (this is your original loop)
+    remainingDeclarations.forEach(({ property, value }) => { // <-- Note: Looping over `remainingDeclarations` now
       const normalizedProperty = property.toLowerCase().trim();
       const valueVariations = normalizeValue(value);
       
@@ -1052,54 +1077,48 @@ export function convertCSSToTailwind(rules: CSSRule[]): ConversionResult[] {
       
       // If no static match, try dynamic pattern matching
       if (!tailwindClass) {
-        tailwindClass = tryPatternMatch(property, value) || undefined;
+        // IMPORTANT: We must ensure sizePatternMatcher is not run again here.
+        // We can filter the matchers list, but it's simpler to just check the property.
+        if (!sizePatternMatcher.test(property)) {
+            tailwindClass = tryPatternMatch(property, value) || undefined;
+        }
       }
       
-      // If still no match, try arbitrary value format
+      // ... (The rest of your logic for arbitrary values and unconvertible properties remains the same)
       if (!tailwindClass) {
-        if (SPACING_PROPERTIES.includes(normalizedProperty)) {
-          const propertyClassMap: Record<string, string> = {
-            'top': 'top',
-            'right': 'right',
-            'bottom': 'bottom',
-            'left': 'left',
-            'width': 'w',
-            'height': 'h'
-          };
-          
-          const classPrefix = propertyClassMap[normalizedProperty];
-          if (classPrefix) {
-            tailwindClass = `${classPrefix}-[${value}]`;
-          }
+        // This arbitrary value fallback should also not include width/height
+        // as they are now handled by sizePatternMatcher exclusively.
+        // Your existing fallbacks are mostly for other properties, which is fine.
+        if (SPACING_PROPERTIES.includes(normalizedProperty) && !['width', 'height'].includes(normalizedProperty)) {
+            const propertyClassMap: Record<string, string> = {
+                'top': 'top', 'right': 'right', 'bottom': 'bottom', 'left': 'left',
+            };
+            const classPrefix = propertyClassMap[normalizedProperty];
+            if (classPrefix) {
+                tailwindClass = `${classPrefix}-[${value}]`;
+            }
         } else if (GRID_PROPERTIES.includes(normalizedProperty)) {
-          // Handle grid properties with arbitrary values
-          const gridPropertyMap: Record<string, string> = {
-            'grid-template-columns': 'grid-cols',
-            'grid-template-rows': 'grid-rows',
-            'grid-column': 'col',
-            'grid-row': 'row'
-          };
-          
-          const classPrefix = gridPropertyMap[normalizedProperty];
-          if (classPrefix) {
-            const cleanValue = value.trim().replace(/\s+/g, '_');
-            tailwindClass = `${classPrefix}-[${cleanValue}]`;
-          }
+            const gridPropertyMap: Record<string, string> = {
+                'grid-template-columns': 'grid-cols', 'grid-template-rows': 'grid-rows',
+                'grid-column': 'col', 'grid-row': 'row'
+            };
+            const classPrefix = gridPropertyMap[normalizedProperty];
+            if (classPrefix) {
+                const cleanValue = value.trim().replace(/\s+/g, '_');
+                tailwindClass = `${classPrefix}-[${cleanValue}]`;
+            }
         }
       }
       
       if (tailwindClass) {
         tailwindClasses.push(tailwindClass);
       } else {
-        // Failed to convert - provide helpful error message
+        // ... (your unconvertible logic remains the same)
         const availableValues = getAvailableValues(normalizedProperty);
         const availableProperties = getAvailableProperties();
-        
         let reason: string;
-        
         if (availableValues.length > 0) {
           const similarValues = findSimilarItems(value.toLowerCase().trim(), availableValues);
-          
           if (similarValues.length > 0) {
             reason = `Value "${value}" not supported. Try: ${similarValues.join(', ')}`;
           } else {
@@ -1108,19 +1127,13 @@ export function convertCSSToTailwind(rules: CSSRule[]): ConversionResult[] {
           }
         } else {
           const similarProperties = findSimilarItems(normalizedProperty, availableProperties);
-          
           if (similarProperties.length > 0) {
             reason = `Property "${property}" not supported. Try: ${similarProperties.join(', ')}`;
           } else {
             reason = `Property "${property}" not supported by this converter`;
           }
         }
-        
-        unconvertible.push({
-          property,
-          value,
-          reason
-        });
+        unconvertible.push({ property, value, reason });
       }
     });
 
