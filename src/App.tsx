@@ -2,68 +2,38 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Waves, Github, Copy, Trash2, Menu, X } from 'lucide-react';
 import { CodeEditor } from './components/CodeEditor';
 import { ConversionOutput } from './components/ConversionOutput';
+import { Settings } from './components/Settings';
 import { parseCSS } from './utils/cssParser';
 import { convertCSSToTailwind } from './utils/tailwindConverter';
 import { useClipboard } from './hooks/useClipboard';
 
 // Constants
-const EXAMPLE_CSS = `video {
+const EXAMPLE_CSS = `/* Grid layout with repeated columns */
+.grid-container {
+  display: grid;
+  grid-template-columns: 200px 200px 200px 200px;
+  grid-template-rows: 100px 100px 100px;
+  gap: 16px;
+}
+
+/* Size optimization example */
+.full-size {
+  width: 100%;
+  height: 100%;
+}
+
+/* Equal columns using fr units */
+.equal-cols {
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+}
+
+/* Video aspect ratio example */
+video {
   aspect-ratio: 16 / 9;
   accent-color: yellow;
 }
 
-/* Default browser accent color */
-button, input[type="checkbox"], input[type="radio"] {
-  accent-color: auto;
-}
-
-/* Custom accent colors */
-.accent-blue {
-  accent-color: blue;
-}
-
-.accent-green {
-  accent-color: #28a745;
-}
-
-.accent-pink {
-  accent-color: rgb(255, 20, 147);
-}
-
-/* Default caret color */
-input, textarea {
-  caret-color: auto;
-}
-
-/* Custom caret colors */
-.caret-red {
-  caret-color: red;
-}
-
-.caret-purple {
-  caret-color: #800080;
-}
-
-.caret-orange {
-  caret-color: orange;
-}
-
-
-example1 {
-  background: #fff;
-  display: grid;
-  grid-template-columns: 200px 200px;
-  justify-content: space-around;
-}
-
-example2 {
-  position: absolute;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
+/* Card component example */
 .card {
   background-color: #ffffff;
   border-radius: 8px;
@@ -72,33 +42,12 @@ example2 {
   margin-bottom: 16px;
 }
 
-.card-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #333333;
-  margin-bottom: 12px;
-}
-
-.card-content {
-  font-size: 16px;
-  line-height: 1.5;
-  color: #666666;
-}
-
 .card-button {
-  display: inline-block;
   background-color: #3b82f6;
   color: #ffffff;
-  font-weight: 500;
   padding: 8px 16px;
   border-radius: 4px;
-  text-decoration: none;
-  margin-top: 16px;
   transition: background-color 0.3s ease;
-}
-
-.card-button:hover {
-  background-color: #2563eb;
 }
 
 `;
@@ -160,6 +109,7 @@ const PanelHeader = ({
 function App() {
   const [cssInput, setCssInput] = useState(EXAMPLE_CSS);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [settingsVersion, setSettingsVersion] = useState(0); // Force re-conversion when settings change
   const { copiedText, copyToClipboard } = useClipboard();
 
   // Memoized conversion results
@@ -174,7 +124,7 @@ function App() {
       console.error('Error parsing CSS:', error);
       return [];
     }
-  }, [cssInput]);
+  }, [cssInput, settingsVersion]); // Add settingsVersion as dependency
 
   // Memoized computed values
   const hasResults = conversionResults.length > 0;
@@ -215,6 +165,10 @@ function App() {
     };
   }, [closeMobileMenu]);
 
+  const handleSettingsChange = useCallback(() => {
+    setSettingsVersion(prev => prev + 1);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
@@ -252,6 +206,8 @@ function App() {
                 <Trash2 className="w-4 h-4" />
                 Clear
               </ActionButton>
+
+              <Settings onSettingsChange={handleSettingsChange} />
 
               <a
                 href={GITHUB_URL}
@@ -296,6 +252,10 @@ function App() {
                   Clear Input
                 </ActionButton>
 
+                <div className="px-4 py-2">
+                  <Settings onSettingsChange={handleSettingsChange} />
+                </div>
+
                 <a
                   href={GITHUB_URL}
                   target="_blank"
@@ -314,7 +274,7 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="flex flex-col lg:flex-row" style={{ height: `calc(100vh - ${HEADER_HEIGHT}px)` }}>
+      <main className="flex flex-col overflow-auto lg:flex-row" style={{ height: `calc(100vh - ${HEADER_HEIGHT}px)` }}>
         {/* CSS Input Panel */}
         <section className="flex-1 border-b lg:border-b-0 lg:border-r border-gray-800 min-h-[50vh] lg:min-h-0">
           <div className="h-full flex flex-col">

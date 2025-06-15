@@ -43,6 +43,8 @@ import { hexColorMatcher, rgbColorMatcher, hslColorMatcher, namedColorMatcher, c
 import { borderRadiusMatcher, borderRadiusShorthandMatcher, convertBorderRadius } from './borderRadius'
 import { shadowPatternMatcher } from './shadow'
 import { borderPatternMatcher } from './border'
+import { isSizeOptimizationEnabled, isRepeaterOptimizationEnabled } from './settings'
+import { detectRepeaterPatterns, convertRepeaterToTailwind, optimizeRepeaterValue } from './repeater'
 
 // Helper to wrap spacing matchers to fit PATTERN_MATCHERS interface
 function wrapSpacingMatcher(matcher: any, convertFn: any) {
@@ -238,6 +240,46 @@ function convertGridStartEnd(property: string, value: string): string | null {
   return null
 }
 
+function convertGridRepeater(property: string, value: string): string | null {
+  if (!isRepeaterOptimizationEnabled()) {
+    // If repeater optimization is disabled, fall back to arbitrary value
+    const prop = property.toLowerCase()
+    const cleanValue = value.trim().replace(/\s+/g, '_')
+    if (prop === 'grid-template-columns') {
+      return `grid-cols-[${cleanValue}]`
+    }
+    if (prop === 'grid-template-rows') {
+      return `grid-rows-[${cleanValue}]`
+    }
+    return null
+  }
+
+  // Try to convert using repeater patterns
+  const pattern = {
+    value: value.trim().split(/\s+/)[0], // First value
+    count: value.trim().split(/\s+/).length,
+    property: property,
+    optimized: optimizeRepeaterValue(property, value)
+  }
+  
+  const tailwindClass = convertRepeaterToTailwind(property, pattern)
+  if (tailwindClass) {
+    return tailwindClass
+  }
+  
+  // Fallback to arbitrary value
+  const prop = property.toLowerCase()
+  const cleanValue = value.trim().replace(/\s+/g, '_')
+  if (prop === 'grid-template-columns') {
+    return `grid-cols-[${cleanValue}]`
+  }
+  if (prop === 'grid-template-rows') {
+    return `grid-rows-[${cleanValue}]`
+  }
+  
+  return null
+}
+
 // Dynamic pattern matching functions with optimized execution order
 const PATTERN_MATCHERS = [
   // 1. SHORTHAND MATCHERS FIRST (most specific)
@@ -283,6 +325,8 @@ const PATTERN_MATCHERS = [
   wrapSpacingMatcher(gridRowGapMatcher, spacingConvert),
   { test: gridTemplateColumnsMatcher.match, convert: (prop: string, val: string) => GRID_PATTERNS[val.toLowerCase().trim()] },
   { test: gridRowsMatcher.match, convert: (prop: string, val: string) => GRID_ROWS_PATTERNS[val.toLowerCase().trim()] },
+  { test: gridTemplateColumnsFixedMatcher.match, convert: convertGridRepeater },
+  { test: gridRowsFixedMatcher.match, convert: convertGridRepeater },
   { test: gridSpanMatcher.match, convert: convertGridSpan },
   { test: gridStartEndMatcher.match, convert: convertGridStartEnd }
 ]
