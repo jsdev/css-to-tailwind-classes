@@ -20,6 +20,7 @@ import {
 } from './constants'
 import {
   paddingShorthandMatcher,
+  marginShorthandMatcher,
   basicSpacingMatcher,
   negativeSpacingMatcher,
   percentageSpacingMatcher,
@@ -28,6 +29,17 @@ import {
   pixelToScaleMatcher,
   remEmSpacingMatcher
 } from './spacing'
+import {
+  gridTemplateColumnsMatcher,
+  gridRowsMatcher,
+  gridTemplateColumnsFixedMatcher,
+  gridRowsFixedMatcher,
+  gridGapMatcher,
+  gridColumnGapMatcher,
+  gridRowGapMatcher,
+  gridSpanMatcher,
+  gridStartEndMatcher
+} from './grid'
 
 // Helper function to parse aspect ratio values
 function parseAspectRatio(value: string): { width: number, height: number } | null {
@@ -113,9 +125,8 @@ function wrapSpacingMatcher(matcher, convertFn) {
 
 // Conversion logic for spacing matchers
 function spacingConvert(property, value) {
-  // Map property to Tailwind class prefix
   const prop = property.toLowerCase().trim();
-  const val = value.toLowerCase().trim();
+  let val = value.toLowerCase().trim();
   const propertyClassMap = {
     'top': 'top',
     'right': 'right',
@@ -148,15 +159,23 @@ function spacingConvert(property, value) {
   if (!prefix) return null;
   // Handle negative values
   if (/^-/.test(val)) {
-    return `-${prefix}-${val.replace(/^-/, '')}`;
+    val = val.replace(/^-/, '');
+    if (val.endsWith('px')) val = val.replace('px', '');
+    if (SPACING_SCALE[val]) return `-${prefix}-${SPACING_SCALE[val]}`;
+    if (val === '1') return `-${prefix}-px`;
+    return null;
   }
   // Handle auto
   if (val === 'auto') {
     return `${prefix}-auto`;
   }
-  // Handle px
-  if (val === '1px') {
-    return `${prefix}-px`;
+  // Handle px values
+  if (val.endsWith('px')) {
+    const num = val.replace('px', '');
+    if (SPACING_SCALE[num]) return `${prefix}-${SPACING_SCALE[num]}`;
+    if (num === '1') return `${prefix}-px`;
+    // If not in scale, use arbitrary value
+    return `${prefix}-[${num}px]`;
   }
   // Handle scale
   if (SPACING_SCALE[val]) {
@@ -168,11 +187,86 @@ function spacingConvert(property, value) {
     if (FRACTION_SCALE[percent.toString()]) {
       return `${prefix}-${FRACTION_SCALE[percent.toString()]}`;
     }
+    // If not in fraction scale, use arbitrary value
+    return `${prefix}-[${val}]`;
   }
   // Handle rem/em
   if (/^(\d+(\.\d+)?(rem|em))$/.test(val)) {
     return `${prefix}-[${val}]`;
   }
+  return `${prefix}-[${val}]`;
+}
+
+// Conversion logic for shorthand spacing (padding/margin with multiple values)
+function shorthandSpacingConvert(property, value) {
+  const prop = property.toLowerCase().trim();
+  const parts = value.trim().split(/\s+/);
+  
+  // Helper to convert a single value to Tailwind scale
+  function convertValue(val) {
+    val = val.toLowerCase().trim();
+    if (val.endsWith('px')) {
+      const num = val.replace('px', '');
+      if (SPACING_SCALE[num]) return SPACING_SCALE[num];
+      if (num === '1') return 'px';
+      return `[${num}px]`;
+    }
+    if (SPACING_SCALE[val]) return SPACING_SCALE[val];
+    return `[${val}]`;
+  }
+
+  if (parts.length === 2) {
+    // Two values: vertical horizontal (e.g., "8px 16px")
+    const vertical = convertValue(parts[0]);
+    const horizontal = convertValue(parts[1]);
+    
+    const prefix = prop === 'padding' ? 'p' : 'm';
+    
+    if (vertical === horizontal) {
+      // Same values, use shorthand (e.g., p-2)
+      return vertical === 'px' ? `${prefix}-px` : `${prefix}-${vertical}`;
+    } else {
+      // Different values, use directional (e.g., py-2 px-4)
+      const verticalClass = vertical === 'px' ? `${prefix}y-px` : `${prefix}y-${vertical}`;
+      const horizontalClass = horizontal === 'px' ? `${prefix}x-px` : `${prefix}x-${horizontal}`;
+      return `${verticalClass} ${horizontalClass}`;
+    }
+  }
+  
+  if (parts.length === 4) {
+    // Four values: top right bottom left
+    const top = convertValue(parts[0]);
+    const right = convertValue(parts[1]);
+    const bottom = convertValue(parts[2]);
+    const left = convertValue(parts[3]);
+    
+    const prefix = prop === 'padding' ? 'p' : 'm';
+    const classes = [];
+    
+    if (top !== '0') classes.push(top === 'px' ? `${prefix}t-px` : `${prefix}t-${top}`);
+    if (right !== '0') classes.push(right === 'px' ? `${prefix}r-px` : `${prefix}r-${right}`);
+    if (bottom !== '0') classes.push(bottom === 'px' ? `${prefix}b-px` : `${prefix}b-${bottom}`);
+    if (left !== '0') classes.push(left === 'px' ? `${prefix}l-px` : `${prefix}l-${left}`);
+    
+    return classes.join(' ');
+  }
+  
+  if (parts.length === 3) {
+    // Three values: top horizontal bottom
+    const top = convertValue(parts[0]);
+    const horizontal = convertValue(parts[1]);
+    const bottom = convertValue(parts[2]);
+    
+    const prefix = prop === 'padding' ? 'p' : 'm';
+    const classes = [];
+    
+    if (top !== '0') classes.push(top === 'px' ? `${prefix}t-px` : `${prefix}t-${top}`);
+    if (horizontal !== '0') classes.push(horizontal === 'px' ? `${prefix}x-px` : `${prefix}x-${horizontal}`);
+    if (bottom !== '0') classes.push(bottom === 'px' ? `${prefix}b-px` : `${prefix}b-${bottom}`);
+    
+    return classes.join(' ');
+  }
+  
   return null;
 }
 
@@ -186,7 +280,8 @@ const PATTERN_MATCHERS = [
   formColorPatternMatcher,
   shadowPatternMatcher,
   sizePatternMatcher,
-  wrapSpacingMatcher(paddingShorthandMatcher, spacingConvert),
+  wrapSpacingMatcher(paddingShorthandMatcher, shorthandSpacingConvert),
+  wrapSpacingMatcher(marginShorthandMatcher, shorthandSpacingConvert),
   wrapSpacingMatcher(basicSpacingMatcher, spacingConvert),
   wrapSpacingMatcher(negativeSpacingMatcher, spacingConvert),
   wrapSpacingMatcher(percentageSpacingMatcher, spacingConvert),
@@ -194,56 +289,6 @@ const PATTERN_MATCHERS = [
   wrapSpacingMatcher(autoSpacingMatcher, spacingConvert),
   wrapSpacingMatcher(pixelToScaleMatcher, spacingConvert),
   wrapSpacingMatcher(remEmSpacingMatcher, spacingConvert),
-  // New matcher for padding shorthand properties
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      const val = value.trim();
-      // Test for 'padding' property with two values (e.g., "8px 16px")
-      return prop === 'padding' && val.split(/\s+/).length === 2;
-    },
-    convert: (property: string, value: string) => {
-      // A map to convert pixel values to Tailwind's spacing scale
-      const pixelToSpacing: Record<string, string> = {
-        '0px': '0', '0': '0',
-        '1px': 'px',
-        '2px': '0.5',
-        '4px': '1',
-        '6px': '1.5',
-        '8px': '2',
-        '10px': '2.5',
-        '12px': '3',
-        '14px': '3.5',
-        '16px': '4',
-        '20px': '5',
-        '24px': '6',
-        '32px': '8',
-      };
-      
-      const parts = value.trim().split(/\s+/);
-      const vertical = parts[0];
-      const horizontal = parts[1];
-
-      const pyClass = pixelToSpacing[vertical];
-      const pxClass = pixelToSpacing[horizontal];
-
-      // Check if both values were successfully mapped
-      if (pyClass !== undefined && pxClass !== undefined) {
-        // Handle the special case for 'p-px'
-        const py = pyClass === 'px' ? 'py-px' : `py-${pyClass}`;
-        const px = pxClass === 'px' ? 'px-px' : `px-${pxClass}`;
-        
-        // If they are the same, combine them (e.g., p-2)
-        if (pyClass === pxClass) {
-          return pyClass === 'px' ? 'p-px' : `p-${pyClass}`;
-        }
-        
-        return `${py} ${px}`;
-      }
-      
-      return null; // Return null if the pattern doesn't match a known conversion
-    }
-  },
   // Basic spacing scale (e.g., "right: 0" → "right-0")
   {
     test: (property: string, value: string) => {
@@ -395,215 +440,6 @@ const PATTERN_MATCHERS = [
       };
       
       return propertyClassMap[prop] || null;
-    }
-  },
-  
-  // Grid template columns - equal columns with fr units
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      return prop === 'grid-template-columns' && GRID_PATTERNS[value.toLowerCase().trim()];
-    },
-    convert: (property: string, value: string) => {
-      return GRID_PATTERNS[value.toLowerCase().trim()];
-    }
-  },
-  
-  // Grid template rows - equal rows with fr units
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      return prop === 'grid-template-rows' && GRID_ROWS_PATTERNS[value.toLowerCase().trim()];
-    },
-    convert: (property: string, value: string) => {
-      return GRID_ROWS_PATTERNS[value.toLowerCase().trim()];
-    }
-  },
-  
-  // Grid template columns - equal fixed-size columns (e.g., "200px 200px 200px")
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      if (prop !== 'grid-template-columns') return false;
-      
-      const analysis = analyzeGridTemplate(value);
-      return analysis.type === 'equal-columns' && analysis.count && analysis.count <= 12;
-    },
-    convert: (property: string, value: string) => {
-      const analysis = analyzeGridTemplate(value);
-      if (analysis.type === 'equal-columns' && analysis.count && analysis.size) {
-        // For equal fixed-size columns, use arbitrary value with repeat
-        return `grid-cols-[repeat(${analysis.count},${analysis.size})]`;
-      }
-      return null;
-    }
-  },
-  
-  // Grid template rows - equal fixed-size rows
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      if (prop !== 'grid-template-rows') return false;
-      
-      const analysis = analyzeGridTemplate(value);
-      return analysis.type === 'equal-columns' && analysis.count && analysis.count <= 6;
-    },
-    convert: (property: string, value: string) => {
-      const analysis = analyzeGridTemplate(value);
-      if (analysis.type === 'equal-columns' && analysis.count && analysis.size) {
-        return `grid-rows-[repeat(${analysis.count},${analysis.size})]`;
-      }
-      return null;
-    }
-  },
-  
-  // Grid template columns - mixed sizes (fallback to arbitrary value)
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      return prop === 'grid-template-columns';
-    },
-    convert: (property: string, value: string) => {
-      // Clean up the value for arbitrary syntax
-      const cleanValue = value.trim().replace(/\s+/g, '_');
-      return `grid-cols-[${cleanValue}]`;
-    }
-  },
-  
-  // Grid template rows - mixed sizes (fallback to arbitrary value)
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      return prop === 'grid-template-rows';
-    },
-    convert: (property: string, value: string) => {
-      // Clean up the value for arbitrary syntax
-      const cleanValue = value.trim().replace(/\s+/g, '_');
-      return `grid-rows-[${cleanValue}]`;
-    }
-  },
-  
-  // Grid gap - single value
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      const val = value.toLowerCase().trim();
-      return (prop === 'gap' || prop === 'grid-gap') && SPACING_SCALE[val];
-    },
-    convert: (property: string, value: string) => {
-      const val = value.toLowerCase().trim();
-      const spacingClass = SPACING_SCALE[val];
-      return `gap-${spacingClass}`;
-    }
-  },
-  
-  // Grid column gap
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      const val = value.toLowerCase().trim();
-      return (prop === 'column-gap' || prop === 'grid-column-gap') && SPACING_SCALE[val];
-    },
-    convert: (property: string, value: string) => {
-      const val = value.toLowerCase().trim();
-      const spacingClass = SPACING_SCALE[val];
-      return `gap-x-${spacingClass}`;
-    }
-  },
-  
-  // Grid row gap
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      const val = value.toLowerCase().trim();
-      return (prop === 'row-gap' || prop === 'grid-row-gap') && SPACING_SCALE[val];
-    },
-    convert: (property: string, value: string) => {
-      const val = value.toLowerCase().trim();
-      const spacingClass = SPACING_SCALE[val];
-      return `gap-y-${spacingClass}`;
-    }
-  },
-  
-  // Grid column span (e.g., "span 2 / span 2")
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      const val = value.toLowerCase().trim();
-      return prop === 'grid-column' && val.match(/^span\s+(\d+)$/);
-    },
-    convert: (property: string, value: string) => {
-      const match = value.toLowerCase().trim().match(/^span\s+(\d+)$/);
-      if (match) {
-        const span = match[1];
-        return `col-span-${span}`;
-      }
-      return null;
-    }
-  },
-  
-  // Grid row span
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      const val = value.toLowerCase().trim();
-      return prop === 'grid-row' && val.match(/^span\s+(\d+)$/);
-    },
-    convert: (property: string, value: string) => {
-      const match = value.toLowerCase().trim().match(/^span\s+(\d+)$/);
-      if (match) {
-        const span = match[1];
-        return `row-span-${span}`;
-      }
-      return null;
-    }
-  },
-  
-  // Grid column start/end
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      const val = value.toLowerCase().trim();
-      return (prop === 'grid-column-start' || prop === 'grid-column-end') && 
-             (val === 'auto' || /^\d+$/.test(val));
-    },
-    convert: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      const val = value.toLowerCase().trim();
-      
-      if (val === 'auto') {
-        return prop === 'grid-column-start' ? 'col-start-auto' : 'col-end-auto';
-      }
-      
-      if (/^\d+$/.test(val)) {
-        return prop === 'grid-column-start' ? `col-start-${val}` : `col-end-${val}`;
-      }
-      
-      return null;
-    }
-  },
-  
-  // Grid row start/end
-  {
-    test: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      const val = value.toLowerCase().trim();
-      return (prop === 'grid-row-start' || prop === 'grid-row-end') && 
-             (val === 'auto' || /^\d+$/.test(val));
-    },
-    convert: (property: string, value: string) => {
-      const prop = property.toLowerCase().trim();
-      const val = value.toLowerCase().trim();
-      
-      if (val === 'auto') {
-        return prop === 'grid-row-start' ? 'row-start-auto' : 'row-end-auto';
-      }
-      
-      if (/^\d+$/.test(val)) {
-        return prop === 'grid-row-start' ? `row-start-${val}` : `row-end-${val}`;
-      }
-      
-      return null;
     }
   },
   

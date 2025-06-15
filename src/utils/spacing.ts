@@ -6,7 +6,20 @@ import { SPACING_PROPERTIES, SPACING_SCALE, FRACTION_SCALE } from './constants';
 // Matcher for padding shorthand (e.g., "padding: 8px 16px")
 export const paddingShorthandMatcher = {
   match: (property: string, value: string) => {
-    return property.startsWith('padding') && /\d+(px|rem|em|%)?( \d+(px|rem|em|%)?){1,3}/.test(value);
+    const prop = property.toLowerCase().trim();
+    const val = value.trim();
+    // Match padding with 2-4 values
+    return prop === 'padding' && /^\d+(px|rem|em|%)?(\s+\d+(px|rem|em|%)?){1,3}$/.test(val);
+  }
+};
+
+// Matcher for margin shorthand (e.g., "margin: 8px 16px")
+export const marginShorthandMatcher = {
+  match: (property: string, value: string) => {
+    const prop = property.toLowerCase().trim();
+    const val = value.trim();
+    // Match margin with 2-4 values
+    return prop === 'margin' && /^\d+(px|rem|em|%)?(\s+\d+(px|rem|em|%)?){1,3}$/.test(val);
   }
 };
 
@@ -80,6 +93,7 @@ export function convertSpacing(css: string): string[] {
   // List of matchers
   const matchers = [
     paddingShorthandMatcher,
+    marginShorthandMatcher,
     basicSpacingMatcher,
     negativeSpacingMatcher,
     percentageSpacingMatcher,
@@ -123,7 +137,7 @@ export function convertSpacing(css: string): string[] {
     };
     const prefix = propertyClassMap[prop];
     if (!prefix) return null;
-    if (/^-/.test(val)) {
+    if (/-/.test(val)) {
       return `-${prefix}-${val.replace(/^-/, '')}`;
     }
     if (val === 'auto') {
