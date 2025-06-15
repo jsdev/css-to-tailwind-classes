@@ -18,6 +18,16 @@ import {
   GRID_PATTERNS,
   GRID_ROWS_PATTERNS,
 } from './constants'
+import {
+  paddingShorthandMatcher,
+  basicSpacingMatcher,
+  negativeSpacingMatcher,
+  percentageSpacingMatcher,
+  pixelSpacingMatcher,
+  autoSpacingMatcher,
+  pixelToScaleMatcher,
+  remEmSpacingMatcher
+} from './spacing'
 
 // Helper function to parse aspect ratio values
 function parseAspectRatio(value: string): { width: number, height: number } | null {
@@ -93,6 +103,79 @@ function analyzeGridTemplate(value: string): { type: 'equal-columns' | 'equal-ro
   return { type: 'mixed' };
 }
 
+// Helper to wrap spacing matchers to fit PATTERN_MATCHERS interface
+function wrapSpacingMatcher(matcher, convertFn) {
+  return {
+    test: matcher.match,
+    convert: convertFn || (() => null)
+  };
+}
+
+// Conversion logic for spacing matchers
+function spacingConvert(property, value) {
+  // Map property to Tailwind class prefix
+  const prop = property.toLowerCase().trim();
+  const val = value.toLowerCase().trim();
+  const propertyClassMap = {
+    'top': 'top',
+    'right': 'right',
+    'bottom': 'bottom',
+    'left': 'left',
+    'margin': 'm',
+    'margin-top': 'mt',
+    'margin-right': 'mr',
+    'margin-bottom': 'mb',
+    'margin-left': 'ml',
+    'padding': 'p',
+    'padding-top': 'pt',
+    'padding-right': 'pr',
+    'padding-bottom': 'pb',
+    'padding-left': 'pl',
+    'width': 'w',
+    'height': 'h',
+    'min-width': 'min-w',
+    'min-height': 'min-h',
+    'max-width': 'max-w',
+    'max-height': 'max-h',
+    'gap': 'gap',
+    'row-gap': 'gap-y',
+    'column-gap': 'gap-x',
+    'grid-gap': 'gap',
+    'grid-row-gap': 'gap-y',
+    'grid-column-gap': 'gap-x',
+  };
+  const prefix = propertyClassMap[prop];
+  if (!prefix) return null;
+  // Handle negative values
+  if (/^-/.test(val)) {
+    return `-${prefix}-${val.replace(/^-/, '')}`;
+  }
+  // Handle auto
+  if (val === 'auto') {
+    return `${prefix}-auto`;
+  }
+  // Handle px
+  if (val === '1px') {
+    return `${prefix}-px`;
+  }
+  // Handle scale
+  if (SPACING_SCALE[val]) {
+    return `${prefix}-${SPACING_SCALE[val]}`;
+  }
+  // Handle percent as fraction
+  if (/%$/.test(val)) {
+    const percent = parseFloat(val.replace('%', '')) / 100;
+    if (FRACTION_SCALE[percent.toString()]) {
+      return `${prefix}-${FRACTION_SCALE[percent.toString()]}`;
+    }
+  }
+  // Handle rem/em
+  if (/^(\d+(\.\d+)?(rem|em))$/.test(val)) {
+    return `${prefix}-[${val}]`;
+  }
+  return null;
+}
+
 // Dynamic pattern matching functions
 const PATTERN_MATCHERS = [
   backgroundPatternMatcher,
@@ -103,6 +186,14 @@ const PATTERN_MATCHERS = [
   formColorPatternMatcher,
   shadowPatternMatcher,
   sizePatternMatcher,
+  wrapSpacingMatcher(paddingShorthandMatcher, spacingConvert),
+  wrapSpacingMatcher(basicSpacingMatcher, spacingConvert),
+  wrapSpacingMatcher(negativeSpacingMatcher, spacingConvert),
+  wrapSpacingMatcher(percentageSpacingMatcher, spacingConvert),
+  wrapSpacingMatcher(pixelSpacingMatcher, spacingConvert),
+  wrapSpacingMatcher(autoSpacingMatcher, spacingConvert),
+  wrapSpacingMatcher(pixelToScaleMatcher, spacingConvert),
+  wrapSpacingMatcher(remEmSpacingMatcher, spacingConvert),
   // New matcher for padding shorthand properties
   {
     test: (property: string, value: string) => {
