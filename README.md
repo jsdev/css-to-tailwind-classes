@@ -87,6 +87,13 @@ Our pattern matching engine handles way more than basic conversions:
 - Container sizing with proper boundaries
 - Dynamic viewport units
 
+#### Our Size Pattern Matcher Key Features:
+- Size Optimization: When width and height have the same value, it uses size-* instead of separate w-* and h-* classes
+- Comprehensive Size Mapping: Covers pixels, rems, percentages, viewport units, and fractional sizes
+- Viewport Context Awareness: Handles vw and vh units appropriately for width vs height
+- Value Normalization: Compares sizes intelligently (e.g., 100px vs 100)
+- Arbitrary Value Support: Falls back to [arbitrary-value] syntax for complex expressions
+
 ### Typography (Actually Readable)
 - Font families with proper fallback handling
 - Font weights, sizes, and line heights
@@ -111,7 +118,7 @@ Our pattern matching engine handles way more than basic conversions:
 
 ## What We're Still Working On (The Honest List) 🚧
 
-- Complex keyframe animations (coming soon!)
+- Complex keyframe animations (coming this summer!)
 - Advanced pseudo-selectors (`:nth-child` patterns, etc.)
 - Complex CSS Grid template areas
 - Advanced clipping paths
