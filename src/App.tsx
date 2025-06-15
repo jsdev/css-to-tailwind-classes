@@ -110,6 +110,7 @@ function App() {
   const [cssInput, setCssInput] = useState(EXAMPLE_CSS);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [settingsVersion, setSettingsVersion] = useState(0); // Force re-conversion when settings change
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Track settings modal state
   const { copiedText, copyToClipboard } = useClipboard();
 
   // Memoized conversion results
@@ -169,6 +170,10 @@ function App() {
     setSettingsVersion(prev => prev + 1);
   }, []);
 
+  const handleSettingsModalToggle = useCallback((isOpen: boolean) => {
+    setIsSettingsOpen(isOpen);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
@@ -207,7 +212,7 @@ function App() {
                 Clear
               </ActionButton>
 
-              <Settings onSettingsChange={handleSettingsChange} />
+              <Settings onSettingsChange={handleSettingsChange} onModalToggle={handleSettingsModalToggle} />
 
               <a
                 href={GITHUB_URL}
@@ -253,7 +258,7 @@ function App() {
                 </ActionButton>
 
                 <div className="px-4 py-2">
-                  <Settings onSettingsChange={handleSettingsChange} />
+                  <Settings onSettingsChange={handleSettingsChange} onModalToggle={handleSettingsModalToggle} />
                 </div>
 
                 <a
@@ -297,7 +302,7 @@ function App() {
         </section>
 
         {/* Tailwind Output Panel */}
-        <section className="flex-1 min-h-[50vh] lg:min-h-0">
+        <section className={`flex-1 min-h-[50vh] lg:min-h-0 ${isSettingsOpen ? 'opacity-0 pointer-events-none' : ''}`}>
           <div className="h-full flex flex-col">
             <PanelHeader 
               title="Tailwind Output" 

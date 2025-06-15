@@ -8,9 +8,10 @@ import {
 
 interface SettingsProps {
   onSettingsChange?: () => void;
+  onModalToggle?: (isOpen: boolean) => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ onSettingsChange }) => {
+export const Settings: React.FC<SettingsProps> = ({ onSettingsChange, onModalToggle }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [settings, setSettingsState] = useState<ConverterSettings>(getSettings());
 
@@ -34,11 +35,21 @@ export const Settings: React.FC<SettingsProps> = ({ onSettingsChange }) => {
     onSettingsChange?.();
   };
 
+  const handleModalOpen = () => {
+    setIsOpen(true);
+    onModalToggle?.(true);
+  };
+
+  const handleModalClose = () => {
+    setIsOpen(false);
+    onModalToggle?.(false);
+  };
+
   return (
     <>
       {/* Settings Button */}
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={handleModalOpen}
         className="p-2 text-gray-400 hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg transition-colors"
         aria-label="Open settings"
       >
@@ -51,7 +62,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSettingsChange }) => {
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black bg-opacity-50"
-            onClick={() => setIsOpen(false)}
+            onClick={handleModalClose}
           />
           {/* Modal */}
           <div className="relative z-[9999999] flex items-center justify-center min-h-full p-4">
@@ -60,7 +71,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSettingsChange }) => {
               <div className="flex items-center justify-between p-4 border-b border-gray-700">
                 <h2 className="text-lg font-semibold text-white">Converter Settings</h2>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleModalClose}
                   className="p-1 text-gray-400 hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
                   aria-label="Close settings"
                 >
@@ -180,7 +191,7 @@ export const Settings: React.FC<SettingsProps> = ({ onSettingsChange }) => {
               {/* Footer */}
               <div className="p-4 border-t border-gray-700 bg-gray-900/50">
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleModalClose}
                   className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 focus:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   Save Settings
