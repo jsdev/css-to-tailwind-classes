@@ -52,7 +52,6 @@ video {
 
 `;
 
-const HEADER_HEIGHT = 89;
 const GITHUB_URL = 'https://github.com/jsdev/css-to-tailwind-classes';
 
 // Types
@@ -279,22 +278,23 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="flex flex-col overflow-auto lg:flex-row" style={{ height: `calc(100vh - ${HEADER_HEIGHT}px)` }}>
+      <main className="flex-1 flex flex-col lg:flex-row">
         {/* CSS Input Panel */}
-        <section className="flex-1 border-b lg:border-b-0 lg:border-r border-gray-800 min-h-[50vh] lg:min-h-0">
-          <div className="h-full flex flex-col">
+        <section className="flex-1 border-b lg:border-b-0 lg:border-r border-gray-800">
+          <div className="grid grid-rows-[2em_1fr] h-full">
             <PanelHeader 
               title="CSS Input" 
               color="bg-blue-500" 
               subtitle="/* Paste CSS here */" 
             />
             
-            <div className="flex-1 bg-gray-950">
+            <div className="bg-gray-950 min-h-[50vh] h-full overflow-y-auto">
               <CodeEditor
                 value={cssInput}
                 onChange={setCssInput}
                 placeholder="Enter your CSS rules here..."
                 language="css"
+                hidden={isSettingsOpen}
                 aria-label="CSS input editor"
               />
             </div>
@@ -302,15 +302,15 @@ function App() {
         </section>
 
         {/* Tailwind Output Panel */}
-        <section className={`flex-1 min-h-[50vh] lg:min-h-0 ${isSettingsOpen ? 'opacity-0 pointer-events-none' : ''}`}>
-          <div className="h-full flex flex-col">
+        <section className={`flex-1 ${isSettingsOpen ? 'opacity-0 pointer-events-none' : ''}`}>
+          <div className="grid grid-rows-[2em_1fr] h-full">
             <PanelHeader 
               title="Tailwind Output" 
               color="bg-green-500" 
               subtitle={resultCount} 
             />
             
-            <div className="flex-1 bg-gray-950">
+            <div className="bg-gray-950 flex-1 h-full overflow-y-auto">
               <ConversionOutput
                 results={conversionResults}
                 onCopy={copyToClipboard}
@@ -320,11 +320,6 @@ function App() {
           </div>
         </section>
       </main>
-
-      {/* Footer */}
-      <footer className="absolute bottom-4 left-4 text-xs text-gray-600 hidden sm:block">
-        <p>Built with React + TypeScript + Tailwind CSS</p>
-      </footer>
     </div>
   );
 }

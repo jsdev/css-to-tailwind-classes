@@ -58,7 +58,7 @@ CopyButton.displayName = 'CopyButton';
 
 // Empty state component
 const EmptyState = memo(() => (
-  <div className="h-full flex items-center justify-center text-gray-500 p-4">
+  <div className="flex items-center justify-center text-gray-500 p-4" style={{ minHeight: '60vh' }}>
     <div className="text-center" role="status" aria-live="polite">
       <p className="text-sm sm:text-base">{EMPTY_STATE_MESSAGES.primary}</p>
       <p className="text-xs text-gray-600 mt-2 hidden sm:block">
@@ -85,7 +85,7 @@ export const ConversionOutput = memo(({ results, onCopy, copiedText }: Conversio
   }
 
   return (
-    <div className="h-full overflow-y-auto p-3 sm:p-4 space-y-4 sm:space-y-6" role="region" aria-label="Conversion results">
+    <div class="p-3 sm:p-4 space-y-4 sm:space-y-6 h-full" role="region" aria-label="Conversion results">
       {processedResults.map((result, index) => {
         const hasTailwindClasses = result.tailwindClasses.length > 0;
         const hasUnconvertible = result.unconvertible.length > 0;

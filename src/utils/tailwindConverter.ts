@@ -5,7 +5,13 @@ import { transitionPatternMatcher } from './transition'
 import { textPatternMatcher } from './text'
 import { fontPatternMatcher } from './font'
 import { formColorPatternMatcher } from './form-color'
-import { sizePatternMatcher } from './size'
+import {
+  sizePatternMatcher,
+  minWidthPatternMatcher,
+  minHeightPatternMatcher,
+  maxWidthPatternMatcher,
+  maxHeightPatternMatcher,
+ } from './size'
 import {
   ASPECT_RATIO_PROPERTIES,
   ASPECT_RATIO_PATTERNS,
@@ -294,6 +300,10 @@ const PATTERN_MATCHERS = [
   fontPatternMatcher,
   shadowPatternMatcher,
   borderPatternMatcher,
+  minWidthPatternMatcher,
+  minHeightPatternMatcher,
+  maxWidthPatternMatcher,
+  maxHeightPatternMatcher,
   
   // 3. COLOR MATCHERS (specific to general)
   { test: hexColorMatcher.match, convert: convertColor },

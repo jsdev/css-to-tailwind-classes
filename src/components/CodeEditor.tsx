@@ -6,6 +6,7 @@ interface CodeEditorProps {
   placeholder?: string;
   language?: 'css' | 'tailwind';
   readOnly?: boolean;
+  hidden?: boolean;
   'aria-label'?: string;
 }
 
@@ -22,6 +23,7 @@ export const CodeEditor = memo(function CodeEditor({
   placeholder = "Enter code here...", 
   language = 'css', 
   readOnly = false,
+  hidden = false,
   'aria-label': ariaLabel
 }: CodeEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -140,7 +142,7 @@ export const CodeEditor = memo(function CodeEditor({
   ].join(' ');
 
   return (
-    <div className="relative h-full group">
+    <div className="relative group h-full">
       <textarea
         ref={textareaRef}
         value={value}
@@ -149,7 +151,8 @@ export const CodeEditor = memo(function CodeEditor({
         onInput={handleInput}
         placeholder={placeholder}
         readOnly={readOnly}
-        className={textareaClasses}
+        className={`${textareaClasses} ${hidden ? 'opacity-0 pointer-events-none' : ''}`}
+
         spellCheck={false}
         autoCapitalize="off"
         autoComplete="off"
@@ -163,7 +166,7 @@ export const CodeEditor = memo(function CodeEditor({
       />
       
       {/* Line numbers could be added here as an enhancement */}
-      {value && (
+      {value && !hidden && (
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="bg-gray-800/80 backdrop-blur-sm px-2 py-1 rounded text-xs text-gray-400">
             {value.split('\n').length} lines

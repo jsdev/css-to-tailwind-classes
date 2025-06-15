@@ -297,6 +297,65 @@ class SizeUtility {
   }
   
   // ========================================================================
+  // Individual size property matchers (extended for min/max width/height)
+  // ========================================================================
+  class MinWidthPatternMatcher {
+    private sizeUtility = new SizeUtility();
+    convertToTailwind(property: string, value: string): string[] {
+      const classes: string[] = [];
+      if (property.toLowerCase().trim() === 'min-width') {
+        const minWClass = this.sizeUtility.convertSize(value.trim(), 'width');
+        if (minWClass) {
+          classes.push('min-' + minWClass);
+        }
+      }
+      return classes;
+    }
+  }
+  
+  class MinHeightPatternMatcher {
+    private sizeUtility = new SizeUtility();
+    convertToTailwind(property: string, value: string): string[] {
+      const classes: string[] = [];
+      if (property.toLowerCase().trim() === 'min-height') {
+        const minHClass = this.sizeUtility.convertSize(value.trim(), 'height');
+        if (minHClass) {
+          classes.push('min-' + minHClass);
+        }
+      }
+      return classes;
+    }
+  }
+  
+  class MaxWidthPatternMatcher {
+    private sizeUtility = new SizeUtility();
+    convertToTailwind(property: string, value: string): string[] {
+      const classes: string[] = [];
+      if (property.toLowerCase().trim() === 'max-width') {
+        const maxWClass = this.sizeUtility.convertSize(value.trim(), 'width');
+        if (maxWClass) {
+          classes.push('max-' + maxWClass);
+        }
+      }
+      return classes;
+    }
+  }
+  
+  class MaxHeightPatternMatcher {
+    private sizeUtility = new SizeUtility();
+    convertToTailwind(property: string, value: string): string[] {
+      const classes: string[] = [];
+      if (property.toLowerCase().trim() === 'max-height') {
+        const maxHClass = this.sizeUtility.convertSize(value.trim(), 'height');
+        if (maxHClass) {
+          classes.push('max-' + maxHClass);
+        }
+      }
+      return classes;
+    }
+  }
+  
+  // ========================================================================
   // Export pattern matchers
   // ========================================================================
   
@@ -348,6 +407,38 @@ class SizeUtility {
     // Special method for optimizing multiple properties at once
     convertMultiple: (properties: Array<{ property: string; value: string }>): string[] => {
       return combinedSizeConverter.convertMultipleProperties(properties);
+    },
+  };
+  
+  export const minWidthPatternMatcher = {
+    test: (property: string): boolean => property.toLowerCase().trim() === 'min-width',
+    convert: (property: string, value: string): string | null => {
+      const tailwindClasses = new MinWidthPatternMatcher().convertToTailwind(property, value);
+      return tailwindClasses.length > 0 ? tailwindClasses.join(' ') : null;
+    },
+  };
+  
+  export const minHeightPatternMatcher = {
+    test: (property: string): boolean => property.toLowerCase().trim() === 'min-height',
+    convert: (property: string, value: string): string | null => {
+      const tailwindClasses = new MinHeightPatternMatcher().convertToTailwind(property, value);
+      return tailwindClasses.length > 0 ? tailwindClasses.join(' ') : null;
+    },
+  };
+  
+  export const maxWidthPatternMatcher = {
+    test: (property: string): boolean => property.toLowerCase().trim() === 'max-width',
+    convert: (property: string, value: string): string | null => {
+      const tailwindClasses = new MaxWidthPatternMatcher().convertToTailwind(property, value);
+      return tailwindClasses.length > 0 ? tailwindClasses.join(' ') : null;
+    },
+  };
+  
+  export const maxHeightPatternMatcher = {
+    test: (property: string): boolean => property.toLowerCase().trim() === 'max-height',
+    convert: (property: string, value: string): string | null => {
+      const tailwindClasses = new MaxHeightPatternMatcher().convertToTailwind(property, value);
+      return tailwindClasses.length > 0 ? tailwindClasses.join(' ') : null;
     },
   };
   
