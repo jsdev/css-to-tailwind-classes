@@ -276,48 +276,36 @@ function App() {
           )}
         </div>
       </header>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col lg:flex-row">
+      <main className="md:grid md:grid-cols-[1fr_1fr] lg:max-w-7xl mx-auto px-4 sm:px-6 py-4 gap-4">
         {/* CSS Input Panel */}
-        <section className="flex-1 border-b lg:border-b-0 lg:border-r border-gray-800">
-          <div className="grid grid-rows-[2em_1fr] h-full">
+        <section className="min-h-[1fr] grid grid-rows-[2em_1fr] h-full border-b lg:border-b-0 lg:border-r border-gray-800">
             <PanelHeader 
               title="CSS Input" 
               color="bg-blue-500" 
               subtitle="/* Paste CSS here */" 
             />
-            
-            <div className="bg-gray-950 min-h-[50vh] h-full overflow-y-auto">
-              <CodeEditor
-                value={cssInput}
-                onChange={setCssInput}
-                placeholder="Enter your CSS rules here..."
-                language="css"
-                hidden={isSettingsOpen}
-                aria-label="CSS input editor"
-              />
-            </div>
-          </div>
+            <CodeEditor
+              value={cssInput}
+              onChange={setCssInput}
+              placeholder="Enter your CSS rules here..."
+              language="css"
+              hidden={isSettingsOpen}
+              aria-label="CSS input editor"
+            />
         </section>
-
         {/* Tailwind Output Panel */}
-        <section className={`flex-1 ${isSettingsOpen ? 'opacity-0 pointer-events-none' : ''}`}>
-          <div className="grid grid-rows-[2em_1fr] h-full">
+        <section className={`sm:min-h-screen md:min-h-[1fr] grid grid-rows-[2em_1fr] ${isSettingsOpen ? 'opacity-0 pointer-events-none' : ''}`}>
             <PanelHeader 
               title="Tailwind Output" 
               color="bg-green-500" 
               subtitle={resultCount} 
             />
             
-            <div className="bg-gray-950 flex-1 h-full overflow-y-auto">
               <ConversionOutput
                 results={conversionResults}
                 onCopy={copyToClipboard}
                 copiedText={copiedText}
               />
-            </div>
-          </div>
         </section>
       </main>
     </div>

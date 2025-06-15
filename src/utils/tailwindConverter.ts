@@ -4,7 +4,7 @@ import { backgroundPatternMatcher } from './background'
 import { transitionPatternMatcher } from './transition'
 import { textPatternMatcher } from './text'
 import { fontPatternMatcher } from './font'
-import { accentColorPatternMatcher, caretColorPatternMatcher } from './color'
+import { accentColorPatternMatcher, caretColorPatternMatcher, formColorPatternMatcher } from './color'
 // import { flexPatternMatcher } from './flex'
 // import { positionPatternMatcher } from './position'
 // import { displayPatternMatcher } from './display'
@@ -57,7 +57,7 @@ import {
   gridStartEndMatcher
 } from './grid'
 import { aspectRatioMatcher, customAspectRatioMatcher, fallbackAspectRatioMatcher, convertAspectRatio } from './aspectRatio'
-import { hexColorMatcher, rgbColorMatcher, hslColorMatcher, namedColorMatcher, cssVariableColorMatcher, convertColor } from './color'
+import { colorPatternMatcher } from './color'
 import { borderRadiusMatcher, borderRadiusShorthandMatcher, convertBorderRadius } from './borderRadius'
 import { shadowPatternMatcher } from './shadow'
 import { borderPatternMatcher } from './border'
@@ -318,17 +318,12 @@ const PATTERN_MATCHERS = [
   maxHeightPatternMatcher,
   // Note: processFilterOrBackdropFilter is handled in tailwindMap.ts, not here
   
-  // 3. COLOR MATCHERS (specific to general)
-  { test: hexColorMatcher.match, convert: convertColor },
-  { test: rgbColorMatcher.match, convert: convertColor },
-  { test: hslColorMatcher.match, convert: convertColor },
-  { test: namedColorMatcher.match, convert: convertColor },
-  { test: cssVariableColorMatcher.match, convert: convertColor },
+  // 3. COLOR MATCHER (handles all color properties and formats)
+  colorPatternMatcher,
   
   // 4. BORDER & RADIUS MATCHERS
   { test: borderRadiusMatcher.match, convert: convertBorderRadius },
-  accentColorPatternMatcher,
-  caretColorPatternMatcher,
+
   
   // 5. ASPECT RATIO MATCHERS
   { test: aspectRatioMatcher.match, convert: convertAspectRatio },

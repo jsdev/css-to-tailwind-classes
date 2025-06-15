@@ -5,7 +5,7 @@ import { transitionPatternMatcher } from './transition'
 import { textPatternMatcher } from './text'
 import { fontPatternMatcher } from './font'
 import { borderPatternMatcher } from './border'
-import { formColorPatternMatcher } from './form-color'
+import { formColorPatternMatcher } from './color'
 import { sizePatternMatcher } from './size'
 import {
   ASPECT_RATIO_PROPERTIES,

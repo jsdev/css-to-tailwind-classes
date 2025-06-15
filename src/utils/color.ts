@@ -26,62 +26,48 @@ export const COLOR_PROPERTY_MAP: Record<string, string> = {
   'accent-color': 'accent'
 };
 
-// Matcher for hex colors (e.g., "#ff0000", "#f00")
-export const hexColorMatcher = {
-  match: (property: string, value: string) => {
+// Comprehensive color matcher that handles all color properties and formats
+export const colorPatternMatcher = {
+  test: (property: string, value: string): boolean => {
     const prop = property.toLowerCase().trim();
     const val = value.toLowerCase().trim();
-    return COLOR_PROPERTIES.includes(prop) && /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(val);
+    
+    // Must be a color property
+    if (!COLOR_PROPERTIES.includes(prop)) return false;
+    
+    // Check if value matches any color format
+    return (
+      // Hex colors: #fff, #ffffff, #ffffff00
+      /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(val) ||
+      // RGB/RGBA colors: rgb(255,0,0), rgba(255,0,0,0.5)
+      /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*[\d.]+)?\s*\)$/i.test(val) ||
+      // HSL/HSLA colors: hsl(0,100%,50%), hsla(0,100%,50%,0.5)
+      /^hsla?\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*(?:,\s*[\d.]+)?\s*\)$/i.test(val) ||
+      // CSS custom properties: var(--color-primary)
+      /^var\(--[\w-]+\)$/i.test(value.trim()) ||
+      // Named colors
+      [
+        'transparent', 'currentcolor', 'inherit', 'initial', 'unset',
+        'black', 'white', 'red', 'green', 'blue', 'yellow', 'orange', 'purple',
+        'pink', 'gray', 'grey', 'brown', 'cyan', 'magenta', 'lime', 'indigo',
+        'violet', 'navy', 'teal', 'olive', 'maroon', 'silver', 'gold',
+        'crimson', 'darkred', 'darkgreen', 'darkblue', 'darkgray', 'darkgrey',
+        'lightgray', 'lightgrey', 'coral', 'salmon', 'khaki', 'plum', 'orchid',
+        'tan', 'beige', 'lavender', 'azure', 'ivory', 'aqua', 'auto'
+      ].includes(val)
+    );
+  },
+  convert: (property: string, value: string): string | null => {
+    return convertColor(property, value);
   }
 };
 
-// Matcher for RGB/RGBA colors (e.g., "rgb(255, 0, 0)", "rgba(255, 0, 0, 0.5)")
-export const rgbColorMatcher = {
-  match: (property: string, value: string) => {
-    const prop = property.toLowerCase().trim();
-    const val = value.toLowerCase().trim();
-    return COLOR_PROPERTIES.includes(prop) && 
-           /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*[\d.]+)?\s*\)$/i.test(val);
-  }
-};
-
-// Matcher for HSL/HSLA colors (e.g., "hsl(0, 100%, 50%)", "hsla(0, 100%, 50%, 0.5)")
-export const hslColorMatcher = {
-  match: (property: string, value: string) => {
-    const prop = property.toLowerCase().trim();
-    const val = value.toLowerCase().trim();
-    return COLOR_PROPERTIES.includes(prop) && 
-           /^hsla?\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*(?:,\s*[\d.]+)?\s*\)$/i.test(val);
-  }
-};
-
-// Matcher for named colors (e.g., "red", "blue", "transparent")
-export const namedColorMatcher = {
-  match: (property: string, value: string) => {
-    const prop = property.toLowerCase().trim();
-    const val = value.toLowerCase().trim();
-    const namedColors = [
-      'transparent', 'currentcolor', 'inherit', 'initial', 'unset',
-      'black', 'white', 'red', 'green', 'blue', 'yellow', 'orange', 'purple',
-      'pink', 'gray', 'grey', 'brown', 'cyan', 'magenta', 'lime', 'indigo',
-      'violet', 'navy', 'teal', 'olive', 'maroon', 'silver', 'gold',
-      // Extended named colors from form-color.ts
-      'crimson', 'darkred', 'darkgreen', 'darkblue', 'darkgray', 'darkgrey',
-      'lightgray', 'lightgrey', 'coral', 'salmon', 'khaki', 'plum', 'orchid',
-      'tan', 'beige', 'lavender', 'azure', 'ivory', 'aqua', 'auto'
-    ];
-    return COLOR_PROPERTIES.includes(prop) && namedColors.includes(val);
-  }
-};
-
-// Matcher for CSS custom properties/variables (e.g., "var(--primary-color)")
-export const cssVariableColorMatcher = {
-  match: (property: string, value: string) => {
-    const prop = property.toLowerCase().trim();
-    const val = value.trim();
-    return COLOR_PROPERTIES.includes(prop) && /^var\(--[\w-]+\)$/i.test(val);
-  }
-};
+// Legacy exports for backward compatibility (all delegate to the main matcher)
+export const hexColorMatcher = { match: colorPatternMatcher.test };
+export const rgbColorMatcher = { match: colorPatternMatcher.test };
+export const hslColorMatcher = { match: colorPatternMatcher.test };
+export const namedColorMatcher = { match: colorPatternMatcher.test };
+export const cssVariableColorMatcher = { match: colorPatternMatcher.test };
 
 /**
  * Convert color values to Tailwind classes
@@ -96,7 +82,7 @@ export function convertColor(property: string, value: string): string | null {
   const prefix = COLOR_PROPERTY_MAP[prop];
   if (!prefix) return null;
   
-  // Handle named colors with Tailwind equivalents (enhanced with form-color mappings)
+  // Handle named colors with Tailwind equivalents
   const namedColorMap: Record<string, string> = {
     'transparent': 'transparent',
     'currentcolor': 'current',
@@ -121,7 +107,6 @@ export function convertColor(property: string, value: string): string | null {
     'fuchsia': 'fuchsia-500',
     'amber': 'amber-500',
     'violet': 'violet-500',
-    // Extended mappings from form-color.ts
     'crimson': 'red-600',
     'darkred': 'red-800',
     'darkgreen': 'green-800',
@@ -166,32 +151,7 @@ export function convertColor(property: string, value: string): string | null {
   return null;
 }
 
-// Form-specific color pattern matchers for backward compatibility
-export const accentColorPatternMatcher = {
-  test: (property: string): boolean => {
-    return property.toLowerCase().trim() === 'accent-color';
-  },
-  convert: (property: string, value: string): string | null => {
-    return convertColor(property, value);
-  }
-};
-
-export const caretColorPatternMatcher = {
-  test: (property: string): boolean => {
-    return property.toLowerCase().trim() === 'caret-color';
-  },
-  convert: (property: string, value: string): string | null => {
-    return convertColor(property, value);
-  }
-};
-
-// Combined matcher for form colors
-export const formColorPatternMatcher = {
-  test: (property: string): boolean => {
-    const prop = property.toLowerCase().trim();
-    return prop === 'accent-color' || prop === 'caret-color';
-  },
-  convert: (property: string, value: string): string | null => {
-    return convertColor(property, value);
-  }
-};
+// Legacy form-specific matchers (all delegate to the main matcher)
+export const accentColorPatternMatcher = colorPatternMatcher;
+export const caretColorPatternMatcher = colorPatternMatcher;
+export const formColorPatternMatcher = colorPatternMatcher;
