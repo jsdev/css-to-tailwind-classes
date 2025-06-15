@@ -41,21 +41,8 @@ import {
 import { aspectRatioMatcher, customAspectRatioMatcher, fallbackAspectRatioMatcher, convertAspectRatio } from './aspectRatio'
 import { hexColorMatcher, rgbColorMatcher, hslColorMatcher, namedColorMatcher, cssVariableColorMatcher, convertColor } from './color'
 import { borderRadiusMatcher, borderRadiusShorthandMatcher, convertBorderRadius } from './borderRadius'
-
-// Import consolidated modules
-const shadowPatternMatcher = new (require('./shadow').default)()
-const borderPatternMatcher = new (require('./border').default)()
-
-// Helper to wrap class-based matchers
-function wrapClassMatcher(matcher: any) {
-  return {
-    test: (prop: string, val: string) => matcher.test ? matcher.test(prop, val) : true,
-    convert: (prop: string, val: string) => {
-      const result = matcher.convertToTailwind ? matcher.convertToTailwind(prop, val) : matcher.convert(prop, val)
-      return Array.isArray(result) ? result.join(' ') : result
-    }
-  }
-}
+import { shadowPatternMatcher } from './shadow'
+import { borderPatternMatcher } from './border'
 
 // Helper to wrap spacing matchers to fit PATTERN_MATCHERS interface
 function wrapSpacingMatcher(matcher: any, convertFn: any) {
@@ -263,8 +250,8 @@ const PATTERN_MATCHERS = [
   transitionPatternMatcher,
   textPatternMatcher,
   fontPatternMatcher,
-  wrapClassMatcher(shadowPatternMatcher),
-  wrapClassMatcher(borderPatternMatcher),
+  shadowPatternMatcher,
+  borderPatternMatcher,
   
   // 3. COLOR MATCHERS (specific to general)
   { test: hexColorMatcher.match, convert: convertColor },
