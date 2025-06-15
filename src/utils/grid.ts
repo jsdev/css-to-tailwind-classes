@@ -71,3 +71,90 @@ export const gridStartEndMatcher = {
     );
   }
 };
+
+/**
+ * Processes grid-related CSS properties and returns corresponding Tailwind classes.
+ * @param property The CSS property name.  
+ * @param value The CSS property value.
+ * @returns An array of Tailwind classes.
+ */
+export function processGrid(property: string, value: string): string[] {
+  const normalizedValue = value.trim();
+  
+  switch (property) {
+    case 'grid-template-rows':
+      // Check for standard patterns first
+      const rowPattern = GRID_ROWS_PATTERNS[normalizedValue.toLowerCase()];
+      if (rowPattern) {
+        return [rowPattern];
+      }
+      
+      // Check for repeating patterns like "200px 200px 200px"
+      const rowParts = normalizedValue.split(/\s+/);
+      if (rowParts.length > 1 && rowParts.every(part => part === rowParts[0])) {
+        const cleanValue = normalizedValue.replace(/\s+/g, '_');
+        return [`grid-rows-[${cleanValue}]`];
+      }
+      
+      // Fallback to arbitrary value
+      const cleanRowValue = normalizedValue.replace(/\s+/g, '_');
+      return [`grid-rows-[${cleanRowValue}]`];
+      
+    case 'grid-row-start':
+      if (normalizedValue === 'auto') {
+        return ['row-start-auto'];
+      }
+      if (/^\d+$/.test(normalizedValue)) {
+        return [`row-start-${normalizedValue}`];
+      }
+      return [`row-start-[${normalizedValue}]`];
+      
+    case 'grid-row-end':
+      if (normalizedValue === 'auto') {
+        return ['row-end-auto'];
+      }
+      if (/^\d+$/.test(normalizedValue)) {
+        return [`row-end-${normalizedValue}`];
+      }
+      return [`row-end-[${normalizedValue}]`];
+      
+    case 'grid-template-columns':
+      // Check for standard patterns first
+      const colPattern = GRID_PATTERNS[normalizedValue.toLowerCase()];
+      if (colPattern) {
+        return [colPattern];
+      }
+      
+      // Check for repeating patterns like "200px 200px 200px"
+      const colParts = normalizedValue.split(/\s+/);
+      if (colParts.length > 1 && colParts.every(part => part === colParts[0])) {
+        const cleanValue = normalizedValue.replace(/\s+/g, '_');
+        return [`grid-cols-[${cleanValue}]`];
+      }
+      
+      // Fallback to arbitrary value
+      const cleanColValue = normalizedValue.replace(/\s+/g, '_');
+      return [`grid-cols-[${cleanColValue}]`];
+      
+    case 'grid-column-start':
+      if (normalizedValue === 'auto') {
+        return ['col-start-auto'];
+      }
+      if (/^\d+$/.test(normalizedValue)) {
+        return [`col-start-${normalizedValue}`];
+      }
+      return [`col-start-[${normalizedValue}]`];
+      
+    case 'grid-column-end':
+      if (normalizedValue === 'auto') {
+        return ['col-end-auto'];
+      }
+      if (/^\d+$/.test(normalizedValue)) {
+        return [`col-end-${normalizedValue}`];
+      }
+      return [`col-end-[${normalizedValue}]`];
+      
+    default:
+      return [];
+  }
+}

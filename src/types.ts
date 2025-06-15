@@ -15,3 +15,5 @@ export interface CSSRule {
     value: string;
   }>;
 }
+
+export type TailwindMap = Record<string, string | ((value: string) => string[])>;

@@ -4,7 +4,19 @@ import { backgroundPatternMatcher } from './background'
 import { transitionPatternMatcher } from './transition'
 import { textPatternMatcher } from './text'
 import { fontPatternMatcher } from './font'
-import { formColorPatternMatcher } from './form-color'
+import { accentColorPatternMatcher, caretColorPatternMatcher } from './color'
+// import { flexPatternMatcher } from './flex'
+// import { positionPatternMatcher } from './position'
+// import { displayPatternMatcher } from './display'
+// import { overflowPatternMatcher } from './overflow'
+// import { transformPatternMatcher } from './transform'
+// import { opacityPatternMatcher } from './opacity'
+// import { filterPatternMatcher } from './filter'
+// import { visibilityPatternMatcher } from './visibility'
+// import { cursorPatternMatcher } from './cursor'
+// import { zIndexPatternMatcher } from './zIndex'
+import { processFilterOrBackdropFilter } from './filters'
+
 import {
   sizePatternMatcher,
   minWidthPatternMatcher,
@@ -304,6 +316,7 @@ const PATTERN_MATCHERS = [
   minHeightPatternMatcher,
   maxWidthPatternMatcher,
   maxHeightPatternMatcher,
+  // Note: processFilterOrBackdropFilter is handled in tailwindMap.ts, not here
   
   // 3. COLOR MATCHERS (specific to general)
   { test: hexColorMatcher.match, convert: convertColor },
@@ -314,7 +327,8 @@ const PATTERN_MATCHERS = [
   
   // 4. BORDER & RADIUS MATCHERS
   { test: borderRadiusMatcher.match, convert: convertBorderRadius },
-  formColorPatternMatcher,
+  accentColorPatternMatcher,
+  caretColorPatternMatcher,
   
   // 5. ASPECT RATIO MATCHERS
   { test: aspectRatioMatcher.match, convert: convertAspectRatio },

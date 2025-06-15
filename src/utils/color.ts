@@ -64,7 +64,11 @@ export const namedColorMatcher = {
       'transparent', 'currentcolor', 'inherit', 'initial', 'unset',
       'black', 'white', 'red', 'green', 'blue', 'yellow', 'orange', 'purple',
       'pink', 'gray', 'grey', 'brown', 'cyan', 'magenta', 'lime', 'indigo',
-      'violet', 'navy', 'teal', 'olive', 'maroon', 'silver', 'gold'
+      'violet', 'navy', 'teal', 'olive', 'maroon', 'silver', 'gold',
+      // Extended named colors from form-color.ts
+      'crimson', 'darkred', 'darkgreen', 'darkblue', 'darkgray', 'darkgrey',
+      'lightgray', 'lightgrey', 'coral', 'salmon', 'khaki', 'plum', 'orchid',
+      'tan', 'beige', 'lavender', 'azure', 'ivory', 'aqua', 'auto'
     ];
     return COLOR_PROPERTIES.includes(prop) && namedColors.includes(val);
   }
@@ -92,7 +96,7 @@ export function convertColor(property: string, value: string): string | null {
   const prefix = COLOR_PROPERTY_MAP[prop];
   if (!prefix) return null;
   
-  // Handle named colors with Tailwind equivalents
+  // Handle named colors with Tailwind equivalents (enhanced with form-color mappings)
   const namedColorMap: Record<string, string> = {
     'transparent': 'transparent',
     'currentcolor': 'current',
@@ -108,7 +112,43 @@ export function convertColor(property: string, value: string): string | null {
     'gray': 'gray-500',
     'grey': 'gray-500',
     'indigo': 'indigo-500',
-    'cyan': 'cyan-500'
+    'cyan': 'cyan-500',
+    'teal': 'teal-500',
+    'lime': 'lime-500',
+    'emerald': 'emerald-500',
+    'sky': 'sky-500',
+    'rose': 'rose-500',
+    'fuchsia': 'fuchsia-500',
+    'amber': 'amber-500',
+    'violet': 'violet-500',
+    // Extended mappings from form-color.ts
+    'crimson': 'red-600',
+    'darkred': 'red-800',
+    'darkgreen': 'green-800',
+    'darkblue': 'blue-800',
+    'navy': 'blue-900',
+    'maroon': 'red-900',
+    'olive': 'yellow-600',
+    'darkgray': 'gray-700',
+    'darkgrey': 'gray-700',
+    'lightgray': 'gray-300',
+    'lightgrey': 'gray-300',
+    'silver': 'gray-400',
+    'gold': 'yellow-400',
+    'coral': 'orange-400',
+    'salmon': 'orange-300',
+    'khaki': 'yellow-300',
+    'plum': 'purple-400',
+    'orchid': 'purple-300',
+    'tan': 'yellow-200',
+    'beige': 'yellow-100',
+    'lavender': 'purple-200',
+    'azure': 'blue-100',
+    'ivory': 'yellow-50',
+    'aqua': 'cyan-500',
+    'magenta': 'fuchsia-500',
+    'brown': 'amber-800',
+    'auto': 'auto'
   };
   
   const lowerVal = val.toLowerCase();
@@ -125,3 +165,33 @@ export function convertColor(property: string, value: string): string | null {
   
   return null;
 }
+
+// Form-specific color pattern matchers for backward compatibility
+export const accentColorPatternMatcher = {
+  test: (property: string): boolean => {
+    return property.toLowerCase().trim() === 'accent-color';
+  },
+  convert: (property: string, value: string): string | null => {
+    return convertColor(property, value);
+  }
+};
+
+export const caretColorPatternMatcher = {
+  test: (property: string): boolean => {
+    return property.toLowerCase().trim() === 'caret-color';
+  },
+  convert: (property: string, value: string): string | null => {
+    return convertColor(property, value);
+  }
+};
+
+// Combined matcher for form colors
+export const formColorPatternMatcher = {
+  test: (property: string): boolean => {
+    const prop = property.toLowerCase().trim();
+    return prop === 'accent-color' || prop === 'caret-color';
+  },
+  convert: (property: string, value: string): string | null => {
+    return convertColor(property, value);
+  }
+};
