@@ -16,6 +16,7 @@ import { accentColorPatternMatcher, caretColorPatternMatcher, formColorPatternMa
 // import { cursorPatternMatcher } from './cursor'
 // import { zIndexPatternMatcher } from './zIndex'
 import { processFilterOrBackdropFilter } from './filters'
+import { optimizeCustomVariable } from './customVariableOptimizer'
 
 import {
   sizePatternMatcher,
@@ -452,7 +453,12 @@ export function convertCSSToTailwind(rules: CSSRule[]): ConversionResult[] {
     // Process size properties together for optimization
     if (sizeDeclarations.length > 0) {
       const sizeClasses = sizePatternMatcher.convertMultiple(sizeDeclarations)
-      tailwindClasses.push(...sizeClasses)
+      // Apply custom variable optimization to size classes
+      const optimizedSizeClasses = sizeClasses.map((cls, index) => {
+        const declaration = sizeDeclarations[index]
+        return declaration ? optimizeCustomVariable(declaration.property, cls) : cls
+      })
+      tailwindClasses.push(...optimizedSizeClasses)
     }
     
     // Process the rest of the declarations individually
@@ -485,6 +491,8 @@ export function convertCSSToTailwind(rules: CSSRule[]): ConversionResult[] {
             const classPrefix = propertyClassMap[normalizedProperty]
             if (classPrefix) {
                 tailwindClass = `${classPrefix}-[${value}]`
+                // Apply custom variable optimization to arbitrary spacing values
+                tailwindClass = optimizeCustomVariable(normalizedProperty, tailwindClass)
             }
         } else if (GRID_PROPERTIES.includes(normalizedProperty)) {
             const gridPropertyMap: Record<string, string> = {
@@ -495,12 +503,16 @@ export function convertCSSToTailwind(rules: CSSRule[]): ConversionResult[] {
             if (classPrefix) {
                 const cleanValue = value.trim().replace(/\s+/g, '_')
                 tailwindClass = `${classPrefix}-[${cleanValue}]`
+                // Apply custom variable optimization to arbitrary grid values
+                tailwindClass = optimizeCustomVariable(normalizedProperty, tailwindClass)
             }
         }
       }
       
       if (tailwindClass) {
-        tailwindClasses.push(tailwindClass)
+        // Apply custom variable optimization if applicable
+        const optimizedClass = optimizeCustomVariable(normalizedProperty, tailwindClass)
+        tailwindClasses.push(optimizedClass)
       } else {
         const availableValues = getAvailableValues(normalizedProperty)
         const availableProperties = getAvailableProperties()
