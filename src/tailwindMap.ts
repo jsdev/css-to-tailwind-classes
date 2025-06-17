@@ -3,10 +3,9 @@
 
 import type { TailwindMap } from "./types";
 
-// --- Border Spacing (2-value syntax) ---
-// border-spacing: <value> <value>
-export const borderSpacingMappings: TailwindMap = {
-  "border-spacing: 0px 0px": "border-spacing-0",
+export const tailwindMap: TailwindMap = {
+  // Static mappings
+"border-spacing: 0px 0px": "border-spacing-0",
   "border-spacing: 1px 1px": "border-spacing-px",
   "border-spacing: 0.125rem 0.125rem": "border-spacing-0.5",
   "border-spacing: 0.25rem 0.25rem": "border-spacing-1",
@@ -115,10 +114,6 @@ export const borderSpacingMappings: TailwindMap = {
   "border-spacing: var(--tw-border-spacing-x) 18rem": "border-spacing-y-72",
   "border-spacing: var(--tw-border-spacing-x) 20rem": "border-spacing-y-80",
   "border-spacing: var(--tw-border-spacing-x) 24rem": "border-spacing-y-96",
-};
-
-export const tailwindMap: TailwindMap = {
-  // Static mappings
   "accent-color: inherit": "accent-inherit",
   "accent-color: currentColor": "accent-current",
   "accent-color: transparent": "accent-transparent",
