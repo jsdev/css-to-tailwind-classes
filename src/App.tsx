@@ -50,6 +50,10 @@ video {
   transition: background-color 0.3s ease;
 }
 
+/* Custom variable fill test */
+.icon {
+  fill: var(--my-brand-color);
+}
 `;
 
 const GITHUB_URL = 'https://github.com/jsdev/css-to-tailwind-classes';
