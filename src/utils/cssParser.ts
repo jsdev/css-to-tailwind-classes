@@ -1,4 +1,5 @@
 import { CSSRule } from '../types';
+import { parsePseudoFromSelector, getBaseSelector } from './pseudoParser';
 
 export function parseCSS(cssText: string): CSSRule[] {
   const rules: CSSRule[] = [];
@@ -14,6 +15,10 @@ export function parseCSS(cssText: string): CSSRule[] {
     const selector = match[1].trim();
     const declarationBlock = match[2].trim();
     
+    // Parse pseudo-classes and pseudo-elements from selector
+    const pseudoInfo = parsePseudoFromSelector(selector);
+    const baseSelector = getBaseSelector(selector);
+    
     const declarations = declarationBlock
       .split(';')
       .map(decl => decl.trim())
@@ -28,6 +33,8 @@ export function parseCSS(cssText: string): CSSRule[] {
     
     rules.push({
       selector,
+      baseSelector,
+      pseudoInfo,
       declarations
     });
   }

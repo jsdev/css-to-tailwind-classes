@@ -305,6 +305,9 @@ const PATTERN_MATCHERS = [
   wrapSpacingMatcher(pixelSpacingMatcher, spacingConvert),
   wrapSpacingMatcher(autoSpacingMatcher, spacingConvert),
   wrapSpacingMatcher(pixelToScaleMatcher, spacingConvert),
+  wrapSpacingMatcher(remEmSpacingMatcher, spacingConvert)
+];
+
 // Dynamic pattern matching functions with optimized execution order
 const PATTERN_MATCHERS = [
   // 1. SHORTHAND MATCHERS FIRST (most specific)

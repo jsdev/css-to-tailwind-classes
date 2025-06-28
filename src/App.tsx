@@ -3,58 +3,11 @@ import { Waves, Github, Copy, Trash2, Menu, X } from 'lucide-react';
 import { CodeEditor } from './components/CodeEditor';
 import { ConversionOutput } from './components/ConversionOutput';
 import { Settings } from './components/Settings';
+import { ExampleSelector } from './components/ExampleSelector';
 import { parseCSS } from './utils/cssParser';
 import { convertCSSToTailwind } from './utils/tailwindConverter';
 import { useClipboard } from './hooks/useClipboard';
-
-// Constants
-const EXAMPLE_CSS = `/* Grid layout with repeated columns */
-.grid-container {
-  display: grid;
-  grid-template-columns: 200px 200px 200px 200px;
-  grid-template-rows: 100px 100px 100px;
-  gap: 16px;
-}
-
-/* Size optimization example */
-.full-size {
-  width: 100%;
-  height: 100%;
-}
-
-/* Equal columns using fr units */
-.equal-cols {
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-}
-
-/* Video aspect ratio example */
-video {
-  aspect-ratio: 16 / 9;
-  accent-color: yellow;
-}
-
-/* Card component example */
-.card {
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 24px;
-  margin-bottom: 16px;
-}
-
-.card-button {
-  background-color: #3b82f6;
-  color: #ffffff;
-  padding: 8px 16px;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-}
-
-/* Custom variable fill test */
-.icon {
-  fill: var(--my-brand-color);
-}
-`;
+import { EXAMPLE_SETS } from './data/examples';
 
 const GITHUB_URL = 'https://github.com/jsdev/css-to-tailwind-classes';
 
@@ -110,9 +63,8 @@ const PanelHeader = ({
 );
 
 function App() {
-  const [cssInput, setCssInput] = useState(EXAMPLE_CSS);
+  const [cssInput, setCssInput] = useState<string>(EXAMPLE_SETS['Basic Layout']);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [settingsVersion, setSettingsVersion] = useState(0); // Force re-conversion when settings change
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Track settings modal state
   const { copiedText, copyToClipboard } = useClipboard();
 
@@ -128,7 +80,7 @@ function App() {
       console.error('Error parsing CSS:', error);
       return [];
     }
-  }, [cssInput, settingsVersion]); // Add settingsVersion as dependency
+  }, [cssInput]);
 
   // Memoized computed values
   const hasResults = conversionResults.length > 0;
@@ -170,11 +122,16 @@ function App() {
   }, [closeMobileMenu]);
 
   const handleSettingsChange = useCallback(() => {
-    setSettingsVersion(prev => prev + 1);
+    // Settings changed - could trigger re-conversion if needed
+    // For now, this is just a placeholder
   }, []);
 
   const handleSettingsModalToggle = useCallback((isOpen: boolean) => {
     setIsSettingsOpen(isOpen);
+  }, []);
+
+  const handleExampleSelect = useCallback((example: string) => {
+    setCssInput(example);
   }, []);
 
   return (
@@ -198,6 +155,8 @@ function App() {
             
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-3">
+              <ExampleSelector onExampleSelect={handleExampleSelect} />
+              
               <ActionButton
                 onClick={handleCopyAll}
                 disabled={!hasResults}
@@ -243,6 +202,13 @@ function App() {
           {isMobileMenuOpen && (
             <nav className="md:hidden mt-4 pt-4 border-t border-gray-800" role="navigation">
               <div className="flex flex-col gap-3">
+                <div className="px-4 py-2">
+                  <ExampleSelector onExampleSelect={(example) => {
+                    handleExampleSelect(example);
+                    closeMobileMenu();
+                  }} />
+                </div>
+                
                 <ActionButton
                   onClick={handleMobileAction(handleCopyAll)}
                   disabled={!hasResults}

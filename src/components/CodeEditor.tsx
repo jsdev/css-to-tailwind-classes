@@ -38,23 +38,46 @@ export const CodeEditor = memo(function CodeEditor({
     const textarea = e.currentTarget;
     const { selectionStart, selectionEnd } = textarea;
 
-    // Handle Tab key for indentation
+    // Handle Tab key for indentation and dedentation
     if (e.key === 'Tab') {
       e.preventDefault();
       
-      const spaces = ' '.repeat(TAB_SIZE);
-      const newValue = value.slice(0, selectionStart) + spaces + value.slice(selectionEnd);
-      
-      onChange(newValue);
-      
-      // Set cursor position after the inserted spaces
-      setTimeout(() => {
-        textarea.selectionStart = textarea.selectionEnd = selectionStart + TAB_SIZE;
-      }, 0);
+      if (e.shiftKey) {
+        // Handle Shift+Tab for dedentation
+        const lineStart = value.lastIndexOf('\n', selectionStart - 1) + 1;
+        const lineEnd = value.indexOf('\n', selectionStart);
+        const actualLineEnd = lineEnd === -1 ? value.length : lineEnd;
+        
+        const lineText = value.slice(lineStart, actualLineEnd);
+        const dedentedLine = lineText.replace(new RegExp(`^\\s{1,${TAB_SIZE}}`), '');
+        const removedSpaces = lineText.length - dedentedLine.length;
+        
+        if (removedSpaces > 0) {
+          const newValue = value.slice(0, lineStart) + dedentedLine + value.slice(actualLineEnd);
+          onChange(newValue);
+          
+          // Adjust cursor position
+          setTimeout(() => {
+            const newPosition = Math.max(lineStart, selectionStart - removedSpaces);
+            textarea.selectionStart = textarea.selectionEnd = newPosition;
+          }, 0);
+        }
+      } else {
+        // Handle regular Tab for indentation
+        const spaces = ' '.repeat(TAB_SIZE);
+        const newValue = value.slice(0, selectionStart) + spaces + value.slice(selectionEnd);
+        
+        onChange(newValue);
+        
+        // Set cursor position after the inserted spaces
+        setTimeout(() => {
+          textarea.selectionStart = textarea.selectionEnd = selectionStart + TAB_SIZE;
+        }, 0);
+      }
     }
     
     // Handle Enter key for auto-indentation
-    else if (e.key === 'Enter') {
+    if (e.key === 'Enter') {
       const lineStart = value.lastIndexOf('\n', selectionStart - 1) + 1;
       const lineText = value.slice(lineStart, selectionStart);
       const indentMatch = lineText.match(/^(\s*)/);

@@ -1,5 +1,5 @@
-import React, { memo, useMemo } from 'react';
-import { Copy, Check, AlertCircle } from 'lucide-react';
+import { memo, useMemo } from 'react';
+import { Copy, Check, AlertCircle, Hash, AlertTriangle } from 'lucide-react';
 import { ConversionResult } from '../types';
 
 interface ConversionOutputProps {
@@ -13,6 +13,24 @@ const EMPTY_STATE_MESSAGES = {
   primary: "Enter CSS to see Tailwind conversion",
   secondary: "Paste your CSS rules in the left panel"
 } as const;
+
+// Helper component for pseudo-class/element display
+const PseudoDisplay = memo(({ pseudoInfo }: { pseudoInfo: { classes: string[]; elements: string[] } }) => {
+  const allPseudos = [...pseudoInfo.elements, ...pseudoInfo.classes];
+  
+  if (allPseudos.length === 0) return null;
+  
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      <Hash className="w-3 h-3 text-purple-400" />
+      <span className="text-purple-300">
+        {allPseudos.join(':')}
+      </span>
+    </div>
+  );
+});
+
+PseudoDisplay.displayName = 'PseudoDisplay';
 
 // Helper component for status indicators
 const StatusIndicator = memo(({ type, label }: { type: 'success' | 'warning'; label: string }) => (
@@ -85,7 +103,7 @@ export const ConversionOutput = memo(({ results, onCopy, copiedText }: Conversio
   }
 
   return (
-    <div class="p-3 sm:p-4 space-y-4 sm:space-y-6 h-full" role="region" aria-label="Conversion results">
+    <div className="p-3 sm:p-4 space-y-4 sm:space-y-6 h-full" role="region" aria-label="Conversion results">
       {processedResults.map((result, index) => {
         const hasTailwindClasses = result.tailwindClasses.length > 0;
         const hasUnconvertible = result.unconvertible.length > 0;
@@ -95,10 +113,48 @@ export const ConversionOutput = memo(({ results, onCopy, copiedText }: Conversio
           <article key={index} className="space-y-3">
             {/* Selector header */}
             <header className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-gray-300 break-all" title={result.selector}>
-                {result.selector}
-              </h3>
+              <div className="flex flex-col gap-1">
+                <h3 className="text-sm font-medium text-gray-300 break-all" title={result.selector}>
+                  {result.baseSelector}
+                </h3>
+                <PseudoDisplay pseudoInfo={result.pseudoInfo} />
+              </div>
             </header>
+            
+            {/* Warnings section */}
+            {result.warnings && result.warnings.length > 0 && (
+              <section className="space-y-2" aria-labelledby={`warnings-${index}`}>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full flex-shrink-0 bg-yellow-500" />
+                  <span className="text-xs text-gray-400 uppercase tracking-wide">
+                    Warnings
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {result.warnings.map((warning, wIdx) => (
+                    <div 
+                      key={wIdx} 
+                      className="bg-yellow-950/30 border border-yellow-800/50 rounded-lg p-3"
+                      role="alert"
+                      aria-describedby={`warning-${index}-${wIdx}`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle 
+                          className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" 
+                          aria-hidden="true"
+                        />
+                        <p 
+                          id={`warning-${index}-${wIdx}`}
+                          className="text-xs text-yellow-200 break-words"
+                        >
+                          {warning}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
             
             {/* Tailwind classes section */}
             {hasTailwindClasses && (
