@@ -43,22 +43,31 @@ const ActionButton = ({ onClick, disabled = false, variant, children, className 
 const PanelHeader = ({ 
   title, 
   color, 
-  subtitle 
+  subtitle,
+  action
 }: { 
   title: string; 
   color: string; 
-  subtitle?: string; 
+  subtitle?: string;
+  action?: React.ReactNode;
 }) => (
   <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-gray-900/50">
     <div className="flex items-center gap-2">
       <div className={`w-3 h-3 rounded-full ${color}`} />
       <span className="text-sm font-medium text-gray-300">{title}</span>
     </div>
-    {subtitle && (
-      <span className="text-xs text-gray-500 hidden sm:block">
-        {subtitle}
-      </span>
-    )}
+    <div className="flex items-center gap-3">
+      {action && (
+        <div className="flex items-center">
+          {action}
+        </div>
+      )}
+      {subtitle && (
+        <span className="text-xs text-gray-500 hidden sm:block">
+          {subtitle}
+        </span>
+      )}
+    </div>
   </div>
 );
 
@@ -155,8 +164,6 @@ function App() {
             
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-3">
-              <ExampleSelector onExampleSelect={handleExampleSelect} />
-              
               <ActionButton
                 onClick={handleCopyAll}
                 disabled={!hasResults}
@@ -202,13 +209,6 @@ function App() {
           {isMobileMenuOpen && (
             <nav className="md:hidden mt-4 pt-4 border-t border-gray-800" role="navigation">
               <div className="flex flex-col gap-3">
-                <div className="px-4 py-2">
-                  <ExampleSelector onExampleSelect={(example) => {
-                    handleExampleSelect(example);
-                    closeMobileMenu();
-                  }} />
-                </div>
-                
                 <ActionButton
                   onClick={handleMobileAction(handleCopyAll)}
                   disabled={!hasResults}
@@ -248,12 +248,17 @@ function App() {
       </header>
       <main className="md:grid md:grid-cols-[1fr_1fr] lg:max-w-7xl mx-auto px-4 sm:px-6 py-4 gap-4">
         {/* CSS Input Panel */}
-        <section className="min-h-[1fr] grid grid-rows-[2em_1fr] h-full border-b lg:border-b-0 lg:border-r border-gray-800">
+        <section className="min-h-[1fr] grid grid-rows-[2em_auto_1fr] md:grid-rows-[2em_1fr] h-full border-b lg:border-b-0 lg:border-r border-gray-800">
             <PanelHeader 
               title="CSS Input" 
               color="bg-blue-500" 
               subtitle="/* Paste CSS here */" 
+              action={<div className="hidden sm:block"><ExampleSelector onExampleSelect={handleExampleSelect} /></div>}
             />
+            {/* Mobile Example Selector */}
+            <div className="block sm:hidden px-4 py-2 border-b border-gray-800 bg-gray-900/30">
+              <ExampleSelector onExampleSelect={handleExampleSelect} />
+            </div>
             <CodeEditor
               value={cssInput}
               onChange={setCssInput}
